@@ -7,10 +7,6 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 #[doc(hidden)] pub mod core;
 #[doc(inline)] pub use core::setup_logger;
 
-#[doc(hidden)] pub mod config;
-#[doc(inline)]
-pub use config::{ConfigItem, ConfigResolver, DomainConfig, SinkDomain, SinksConfig};
-
 #[doc(hidden)] pub mod client;
 #[doc(inline)] pub use client::{PrintProvider, query};
 
@@ -22,3 +18,6 @@ pub use config::{ConfigItem, ConfigResolver, DomainConfig, SinkDomain, SinksConf
 
 #[doc(hidden)] pub mod server;
 #[doc(inline)] pub use server::DNSServer;
+
+#[doc(hidden)] pub mod resolver;
+#[doc(inline)] pub use resolver::ConfigResolver;

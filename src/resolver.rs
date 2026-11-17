@@ -14,68 +14,89 @@ use regex::Regex;
 
 // use hickory_proto::rr::LowerName;
 // use debug_et_diagnostics::dbg;
-use crate::{ConfigItem, DomainConfig};
 use crate::{Error, Result};
 #[derive(Debug, Clone)]
 pub struct ConfigResolver {
-    store: BTreeMap<String, Vec<String>>,
+    store: BTreeMap<String, Ipv4Addr>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
+    upstream_servers: Vec<(String, Ipv4Addr)>,
 }
-
 impl Default for ConfigResolver {
     fn default() -> ConfigResolver {
-        ConfigResolver::load_default_opt_conf().expect("ConfigResolver with items")
+        ConfigResolver::load().unwrap()
     }
 }
-
 impl ConfigResolver {
-    pub fn add_upstream_server_ipv4(&mut self, _addr: Ipv4Addr) -> Result<()> {
+    fn load_default_upstream_servers() -> Result<Vec<(String, Ipv4Addr)>> {
+        let mut result = Vec::<(String, Ipv4Addr)>::new();
+        let upstream_servers = [
+            ("quad9_security", Ipv4Addr::new(9, 9, 9, 9)),
+            ("cloudflare", Ipv4Addr::new(1, 0, 0, 1)),
+            ("cloudflare", Ipv4Addr::new(1, 1, 1, 1)),
+            ("google", Ipv4Addr::new(8, 8, 4, 4)),
+            ("google", Ipv4Addr::new(8, 8, 8, 8)),
+            // // ("adguard", Ipv4Addr::new(94, 140, 14, 14)),
+            // // ("adguard", Ipv4Addr::new(94, 140, 15, 15)),
+            // // ("comodo", Ipv4Addr::new(156, 154, 70, 22)),
+            // // ("comodo", Ipv4Addr::new(156, 154, 71, 22)),
+            // // ("comodo_secure", Ipv4Addr::new(8, 20, 247, 20)),
+            // // ("comodo_secure", Ipv4Addr::new(8, 26, 56, 26)),
+            // // ("dnswatch", Ipv4Addr::new(84, 200, 69, 80)),
+            // // ("dnswatch", Ipv4Addr::new(84, 200, 70, 40)),
+            // // ("norton_connect_safe", Ipv4Addr::new(199, 85, 126, 10)),
+            // // ("norton_connect_safe", Ipv4Addr::new(199, 85, 127, 10)),
+            // ("opendns", Ipv4Addr::new(208, 67, 220, 220)),
+            // ("opendns", Ipv4Addr::new(208, 67, 222, 222)),
+            // ("opendns", Ipv4Addr::new(208, 67, 220, 222)),
+            // ("opendns", Ipv4Addr::new(208, 67, 222, 220)),
+        ];
+        for (name, ipv4) in upstream_servers.into_iter() {
+            log::trace!("adding upstream server from {name}: {ipv4}");
+
+            result.push((name.to_string(), ipv4));
+        }
+        Ok(result.clone())
+    }
+
+    pub fn add_upstream_server_ipv4(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
+        self.upstream_servers.push((name, addr));
         Ok(())
     }
-    pub fn add_records<T: std::fmt::Display, I: Iterator<Item = Ipv4Addr>>(
-        &mut self,
-        name: T,
-        records: I,
-    ) -> Result<()> {
+    /// Adds a custom ipv4 addr to resolve `name`. This mechanism
+    /// allows the flexibility to specify specific domains on top of
+    /// the blocked ones and has the potential to replace blocked
+    /// addresses
+    pub fn register_record(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
         let name = name.to_string();
-        let records = records.map(|ip| ip.to_string()).collect::<Vec<String>>();
         if let Some(x) = self.store.get_mut(&name) {
-            x.extend(records)
+            if x.to_string() != addr.to_string() {
+                *x = addr;
+            }
         } else {
-            self.store.insert(name, records);
+            self.store.insert(name, addr);
         }
         Ok(())
     }
-    pub fn load_empty() -> Result<ConfigResolver> {
-        let servers = ServerGroup { ips: &[], server_name: "loopback", path: "/__query_path__" };
+    pub fn new(
+        servers: ServerGroup,
+        upstream_servers: Vec<(String, Ipv4Addr)>,
+        resolver: HickoryResolver<TokioRuntimeProvider>,
+    ) -> Result<ConfigResolver> {
         let resolver = HickoryResolver::builder_with_config(
             ResolverConfig::udp_and_tcp(&servers),
             TokioRuntimeProvider::default(),
         )
         .build()?;
-        let store = BTreeMap::new();
-        Ok(ConfigResolver { store, resolver })
+
+        Ok(ConfigResolver { store: BTreeMap::new(), resolver, upstream_servers })
     }
-    pub fn load_default_opt_conf() -> Result<ConfigResolver> {
-        let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
-        Ok(ConfigResolver::load(&path)?)
-    }
-    pub fn new(
-        items: Vec<ConfigItem>,
-        upstream_servers: Vec<Ipv4Addr>,
-        resolver: HickoryResolver<TokioRuntimeProvider>,
-    ) -> ConfigResolver {
-        ConfigResolver { store: BTreeMap::new(), resolver }
-    }
-    pub fn load(path: &Path) -> Result<ConfigResolver> {
-        log::info!("ConfigResolver::load({path:#?})", path = path.to_string());
-        let upstream_servers = ConfigResolver::load_upstream_servers(path)?;
+    pub fn load<'a>() -> Result<ConfigResolver> {
+        let upstream_servers = ConfigResolver::load_default_upstream_servers()?;
         let ips = upstream_servers
             .clone()
             .into_iter()
-            .map(|addr| IpAddr::V4(addr))
+            .map(|(_name, addr)| IpAddr::V4(addr))
             .collect::<Vec<IpAddr>>();
-        // let items = ConfigResolver::load_config_items(path)?;
         let servers = ServerGroup { ips: &ips, server_name: "loopback", path: "/__query_path__" };
         let resolver = HickoryResolver::builder_with_config(
             ResolverConfig::udp_and_tcp(&servers),
@@ -83,27 +104,7 @@ impl ConfigResolver {
         )
         .build()?;
         let mut store = BTreeMap::new();
-        // for item in items {
-        //     store.insert(
-        //         item.target.to_string(),
-        //         Vec::from_iter(item.domains.iter().map(|domain| domain.to_string())),
-        //         // .iter()
-        //         // // .map(|ip| ip.parse::<Ipv4Addr>())
-        //         // .map(|ip|{
-        //         //     let ipaddr = ip.parse::<Ipv4Addr>();
-        //         //     let is_ok = ipaddr.is_ok();
-        //         //     if !is_ok {
-        //         //         eprintln!("invalid ipv4 address: {ip:#?}");
-        //         //         eprintln!("invalid object: {ipaddr:#?}");
-        //         //     }
-        //         //     ipaddr
-        //         // })
-        //         // .filter(|ipaddr|ipaddr.is_ok())
-        //         // .map(|ip| ip.unwrap())
-        //         // .collect(),
-        //     );
-        // }
-        Ok(ConfigResolver { store, resolver })
+        Ok(ConfigResolver { store, resolver, upstream_servers })
     }
     pub async fn resolve<I: ToString, T: Iterator<Item = I>>(
         &self,
@@ -125,24 +126,22 @@ impl ConfigResolver {
             // let lower_name = LowerName::new(&name);
             log::info!("looking for {name_value:#?} ", name_value = name_value.to_string());
             // eprintln!("<STORE CONTENTS length={}>",self.store.len());
-            for (addr, names) in self.store.iter() {
+            for (name, ipv4) in self.store.clone().into_iter() {
                 log::debug!(
                     "looking whether {name_value:#?}
                      is match to {addr:#?}\n",
                     name_value = name_value.to_string(),
-                    addr = addr.to_string(),
+                    addr = ipv4.to_string(),
                 );
-                for name in names.iter() {
-                    if glob_match(name.to_string(), name_value.to_string()) {
-                        log::info!(
-                            "is glob_match({name:#?}, {name_value:#?}) ?",
-                            name = name.to_string(),
-                            name_value = name_value.to_string()
-                        );
-                        result.push(addr.to_string());
-                    } else if name.to_string().contains(&name_value) {
-                        log::info!("resolved name {name:#?} to {addr:#?}", addr = addr.to_string());
-                    }
+                if glob_match(name.to_string(), name_value.to_string()) {
+                    log::info!(
+                        "is glob_match({name:#?}, {name_value:#?}) ?",
+                        name = name.to_string(),
+                        name_value = name_value.to_string()
+                    );
+                    result.push(ipv4.to_string());
+                } else if name.to_string().contains(&name_value) {
+                    log::info!("resolved name {name:#?} to {addr:#?}", addr = ipv4.to_string());
                 }
             }
             let total_found = result.len();
@@ -175,36 +174,6 @@ impl ConfigResolver {
         Ok(result)
     }
 
-    fn load_upstream_servers(_path: &Path) -> Result<Vec<Ipv4Addr>> {
-        let mut result = Vec::<Ipv4Addr>::new();
-        let upstream_servers = [
-            ("quad9_security", Ipv4Addr::new(9, 9, 9, 9)),
-            ("cloudflare", Ipv4Addr::new(1, 0, 0, 1)),
-            ("cloudflare", Ipv4Addr::new(1, 1, 1, 1)),
-            ("google", Ipv4Addr::new(8, 8, 4, 4)),
-            ("google", Ipv4Addr::new(8, 8, 8, 8)),
-            // // ("adguard", Ipv4Addr::new(94, 140, 14, 14)),
-            // // ("adguard", Ipv4Addr::new(94, 140, 15, 15)),
-            // // ("comodo", Ipv4Addr::new(156, 154, 70, 22)),
-            // // ("comodo", Ipv4Addr::new(156, 154, 71, 22)),
-            // // ("comodo_secure", Ipv4Addr::new(8, 20, 247, 20)),
-            // // ("comodo_secure", Ipv4Addr::new(8, 26, 56, 26)),
-            // // ("dnswatch", Ipv4Addr::new(84, 200, 69, 80)),
-            // // ("dnswatch", Ipv4Addr::new(84, 200, 70, 40)),
-            // // ("norton_connect_safe", Ipv4Addr::new(199, 85, 126, 10)),
-            // // ("norton_connect_safe", Ipv4Addr::new(199, 85, 127, 10)),
-            // ("opendns", Ipv4Addr::new(208, 67, 220, 220)),
-            // ("opendns", Ipv4Addr::new(208, 67, 222, 222)),
-            // ("opendns", Ipv4Addr::new(208, 67, 220, 222)),
-            // ("opendns", Ipv4Addr::new(208, 67, 222, 220)),
-        ];
-        for (name, ipv4) in upstream_servers.into_iter() {
-            log::trace!("adding upstream server from {name}: {ipv4}");
-
-            result.push(ipv4);
-        }
-        Ok(result)
-    }
     // fn load_config_items(path: &Path) -> Result<Vec<ConfigItem>> {
     //     let regexp = Regex::new("^(([0-9]{1,3})[.]([0-9]{1,3})[.]([0-9]{1,3})[.]([0-9]{1,3}))$")?;
     //     let domain_list_file_path = path.clone();

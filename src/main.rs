@@ -1,21 +1,47 @@
 #![allow(unused)]
 use std::net::Ipv4Addr;
 
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
 use iocore::{Path, env};
-use name_sayer::{DNSServer, DomainConfig};
+use name_sayer::DNSServer;
 use tokio::net::UdpSocket;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, disable_help_flag = true)]
 pub struct Cli {
     #[arg(short, long, default_value = "53")]
     port: u16,
+
     #[arg(short, long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
     #[arg(short, long, default_value = "debug")]
     log_level: log::LevelFilter,
+
+    #[arg(short, long)]
+    blocklist_files: Vec<Path>,
+
+    #[arg(short,
+          long,
+          help = "do not terminate resolving blocked names, leaves the dns-client hanging (not recommended)",
+          action = ArgAction::SetTrue,
+    )]
+    block_non_terminate: bool,
+
+    #[arg(short,
+          long,
+          help = "resolve all blocked names to the ipv4 address designated in --block-terminate-ipv4",
+          action = ArgAction::SetTrue,
+    )]
+    block_terminate: bool,
+
+    #[arg(
+        short,
+        long,
+        help = "an IP address to which all blocked names will resolve to",
+        default_value = "23.50.77.69"
+    )]
+    block_terminate_ipv4: Ipv4Addr,
 
     #[arg(short = 'H', long)]
     help: bool,
@@ -25,18 +51,17 @@ pub struct Cli {
 pub struct Application {
     cli: Cli,
     server: DNSServer,
-    domain_config: DomainConfig,
 }
 
 impl Default for Application {
     fn default() -> Self {
-        Application::new(DomainConfig::default())
+        Application::new()
     }
 }
 
 impl Application {
-    pub fn new(domain_config: DomainConfig) -> Application {
-        Application { cli: Cli::parse(), server: DNSServer::default(), domain_config }
+    pub fn new() -> Application {
+        Application { cli: Cli::parse(), server: DNSServer::default() }
     }
 
     pub async fn serve(&mut self) -> Result<()> {
@@ -62,11 +87,9 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), Report> {
-        let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
+    let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
 
-
-    let domain_config = DomainConfig::load(path).unwrap_or_default();
-    let mut app = Application::new(domain_config);
+    let mut app = Application::new();
     app.serve().await?;
     Ok(())
 }
