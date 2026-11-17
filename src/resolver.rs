@@ -143,7 +143,9 @@ impl ConfigResolver {
 
                 if name.eq_case(&requested_name) {
                     result.push(ipv4.to_string());
-                    log::warn!("blocking {requested_name}");
+                    log::warn!("blocking {requested_name} to {ipv4}");
+                } else {
+                    log::warn!("WAT");
                 }
             }
             let total_found = result.len();
