@@ -1,7 +1,7 @@
 [package]
 name = "name-sayer"
 version = "0.0.1"
-description = "simple authoritative DNS server with blocklist features"
+description = "authoritative DNS server with blocklist features"
 readme = "README.md"
 homepage = "https://crates.io/crates/name-sayer"
 license = "MIT OR Apache-2.0"
