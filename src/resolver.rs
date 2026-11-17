@@ -1,5 +1,6 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
+    fmt::Display,
     net::{IpAddr, Ipv4Addr},
 };
 
@@ -25,6 +26,9 @@ impl Default for ConfigResolver {
     fn default() -> ConfigResolver {
         ConfigResolver::load().unwrap()
     }
+}
+pub fn normalize_domain_name<T: Display>(name: T) -> String {
+    name.to_string().trim().to_string().trim_end_matches('.').to_string()
 }
 impl ConfigResolver {
     fn load_default_upstream_servers() -> Result<Vec<(String, Ipv4Addr)>> {
@@ -106,70 +110,68 @@ impl ConfigResolver {
         let mut store = BTreeMap::new();
         Ok(ConfigResolver { store, resolver, upstream_servers })
     }
-    pub async fn resolve<I: ToString, T: Iterator<Item = I>>(
+    pub async fn resolve<I: Display, T: Iterator<Item = I>>(
         &self,
         addresses: T,
     ) -> Result<Vec<String>> {
         let mut result = Vec::<String>::new();
-        let addresses = addresses
-            .map(|addr| {
-                let addr = addr.to_string().trim_end_matches('.').to_string();
-                addr.to_string()
+        let requested_names = addresses
+            .map(|name| {
+                let name = normalize_domain_name(name);
+                name.to_string()
             })
             .collect::<Vec<String>>();
-        if !addresses.is_empty() {
-            eprintln!();
-        }
-        for value in addresses.iter() {
-            let name_value = value.to_string();
-            // let name = Name::from_str(&name_value)?;
+        for req in requested_names.iter() {
+            let requested_name = req.to_string();
+            // let name = Name::from_str(&requested_name)?;
             // let lower_name = LowerName::new(&name);
-            log::info!("looking for {name_value:#?} ", name_value = name_value.to_string());
-            // eprintln!("<STORE CONTENTS length={}>",self.store.len());
+            log::info!("looking for {requested_name:#?} ", requested_name = requested_name.to_string());
             for (name, ipv4) in self.store.clone().into_iter() {
+                let name = normalize_domain_name(name);
                 log::debug!(
-                    "looking whether {name_value:#?}
+                    "looking whether {requested_name:#?}
                      is match to {addr:#?}\n",
-                    name_value = name_value.to_string(),
+                    requested_name = requested_name.to_string(),
                     addr = ipv4.to_string(),
                 );
-                if glob_match(name.to_string(), name_value.to_string()) {
-                    log::info!(
-                        "is glob_match({name:#?}, {name_value:#?}) ?",
-                        name = name.to_string(),
-                        name_value = name_value.to_string()
-                    );
+
+                if name == requested_name {
                     result.push(ipv4.to_string());
-                } else if name.to_string().contains(&name_value) {
-                    log::info!("resolved name {name:#?} to {addr:#?}", addr = ipv4.to_string());
+                    log::warn!("blocking {requested_name}");
+                } else if glob_match(name.to_string(), requested_name.to_string()) {
+                    // log::warn!(
+                    //     "is glob_match({name:#?}, {requested_name:#?}) ?",
+                    //     name = name.to_string(),
+                    //     requested_name = requested_name.to_string()
+                    // );
+                    result.push(ipv4.to_string());
+                    log::warn!("blocking {requested_name}");
                 }
             }
             let total_found = result.len();
             if total_found > 0 {
-                let result_items =
-                    result.iter().map(|ip| format!("- {ip}")).collect::<Vec<String>>().join("\n");
-                eprintln!("found {total_found} items:\n{result_items}\n");
-            } else {
-                log::warn!("no match found locally, querying upstream for {name_value:#?}\n");
-                let upstream = self.resolver.clone();
-                // eprintln!("not found in local store, so querying upstream server {upstream:#?}: {name_value:#?}");
-                let upstream_result = upstream
-                    .lookup_ip(value.to_string())
-                    .await?
-                    .iter()
-                    .filter(|ipaddr| ipaddr.is_ipv4())
-                    .map(|ipaddr| match ipaddr {
-                        IpAddr::V4(addr) => addr.to_string(),
-                        IpAddr::V6(_) => unreachable!(),
-                    })
-                    .collect::<Vec<String>>();
-                if upstream_result.is_empty() {
-                    log::warn!(
-                        "no match for {name_value:#?} found in upstream found in any upstream server"
-                    );
-                }
-                result.extend(upstream_result);
+                return Ok(result);
             }
+            log::warn!("no match found locally, querying upstream for {requested_name:#?}\n");
+            let upstream = self.resolver.clone();
+            // eprintln!("not found in local store, so querying upstream server {upstream:#?}: {requested_name:#?}");
+            let upstream_result = upstream
+                .lookup_ip(requested_name.to_string())
+                .await?
+                .iter()
+                .filter(|ipaddr| ipaddr.is_ipv4())
+                .map(|ipaddr| match ipaddr {
+                    IpAddr::V4(addr) => addr.to_string(),
+                    IpAddr::V6(_) => unreachable!(),
+                })
+                .collect::<Vec<String>>();
+            if upstream_result.is_empty() {
+                log::warn!(
+                    "no match for {requested_name:#?} found in upstream found in any upstream server"
+                );
+            }
+            result.extend(upstream_result.clone());
+            log::info!("resolved {requested_name} to {upstream_result}", upstream_result = upstream_result.join(", "));
         }
         Ok(result)
     }

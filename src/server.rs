@@ -21,7 +21,7 @@ use crate::ConfigResolver;
 #[derive(Clone, Debug, Default)]
 pub struct DNSServer
 {
-    upstream: ConfigResolver,
+    pub upstream: ConfigResolver,
 }
 
 impl DNSServer

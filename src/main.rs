@@ -4,47 +4,50 @@ use std::net::Ipv4Addr;
 use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
 use iocore::{Path, env};
-use name_sayer::DNSServer;
+use name_sayer::{DNSServer, setup_logger};
 use tokio::net::UdpSocket;
 #[derive(Parser, Debug, Clone)]
-#[command(author, version, disable_help_flag = true)]
+#[command(author, version)]
 pub struct Cli {
     #[arg(short, long, default_value = "53")]
     port: u16,
 
-    #[arg(short, long, default_value = "0.0.0.0")]
+    #[arg(short = 'H', long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
     #[arg(short, long, default_value = "debug")]
     log_level: log::LevelFilter,
 
     #[arg(short, long)]
+    output_log_file: Option<Path>,
+
+    #[arg(short, long)]
     blocklist_files: Vec<Path>,
 
-    #[arg(short,
-          long,
+    #[arg(long,
+          short = 'B',
           help = "do not terminate resolving blocked names, leaves the dns-client hanging (not recommended)",
           action = ArgAction::SetTrue,
     )]
     block_non_terminate: bool,
 
-    #[arg(short,
+    #[arg(short = 't',
           long,
           help = "resolve all blocked names to the ipv4 address designated in --block-terminate-ipv4",
+          default_value_t = true,
           action = ArgAction::SetTrue,
     )]
     block_terminate: bool,
 
     #[arg(
-        short,
+        short = 'i',
         long,
         help = "an IP address to which all blocked names will resolve to",
         default_value = "23.50.77.69"
     )]
     block_terminate_ipv4: Ipv4Addr,
-
-    #[arg(short = 'H', long)]
-    help: bool,
+    // #[arg(short = 'H', long)]
+    // help: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -90,6 +93,16 @@ async fn main() -> std::result::Result<(), Report> {
     let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
 
     let mut app = Application::new();
+    setup_logger(app.cli.log_level, app.cli.output_log_file.clone())?;
+    let mut names = Vec::<String>::new();
+    for file in app.cli.blocklist_files.iter() {
+        let lines =
+            file.read_lines()?.into_iter().filter(|l| l.trim().len() > 0).collect::<Vec<String>>();
+        names.extend(names.clone());
+    }
+    for name in names {
+        app.server.upstream.add_upstream_server_ipv4(name, app.cli.block_terminate_ipv4)?;
+    }
     app.serve().await?;
     Ok(())
 }
