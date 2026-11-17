@@ -26,9 +26,10 @@ pub struct DNSServer {
     pub blocking_ip: Ipv4Addr,
 }
 
+pub static DEFAULT_BLOCKING_IP: Ipv4Addr = Ipv4Addr::new(23, 50, 77, 69);
 impl Default for DNSServer {
     fn default() -> DNSServer {
-        DNSServer { upstream: Default::default(), blocking_ip: Ipv4Addr::new(23, 50, 77, 69) }
+        DNSServer { upstream: Default::default(), blocking_ip: DEFAULT_BLOCKING_IP }
     }
 }
 impl DNSServer {
@@ -76,7 +77,7 @@ impl RequestHandler for DNSServer {
         let _mr: &MessageRequest = request.deref();
         // eprintln!("{} requests ip address of {}", info.src, info.query.name());
         let builder = MessageResponseBuilder::from_message_request(request);
-
+        let blocking_ip = Ipv4Addr::new(23, 50, 77, 69);
         let mut metadata = Metadata::response_from_request(info.metadata);
         metadata.authoritative = true;
         let _header = Header { metadata, counts: HeaderCounts::default() };
@@ -95,16 +96,16 @@ impl RequestHandler for DNSServer {
                     .clone()
                     .into_iter()
                     .enumerate()
-                    .map(|(idx, ipv4)| {
-                        RData::A(A::from(match ipv4.parse::<Ipv4Addr>() {
-                            Ok(addr) => addr,
-                            Err(error) => {
-                                eprintln!("error in ip addr index {idx}: {error}");
-                                ipv4.parse::<Ipv4Addr>()
-                                    .unwrap_or_else(|_| Ipv4Addr::new(23, 50, 77, 69))
-                            }
-                        }))
+                    .map(|(idx, ipv4)| (idx, ipv4.parse::<Ipv4Addr>()))
+                    .filter(|(idx, result)| {
+                        if let Err(error) = result {
+                            log::error!("error in ip addr index {idx}: {error}");
+                            false
+                        } else {
+                            true
+                        }
                     })
+                    .map(|(idx, addr)| RData::A(A::from(addr.unwrap())))
                     // .filter(|ip| ip.is_some())
                     // .map(|ip| ip.unwrap())
                     .map(|rdata| Record::from_rdata(name.into(), 60, rdata))

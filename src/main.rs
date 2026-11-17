@@ -16,7 +16,7 @@ pub struct Cli {
     host: Ipv4Addr,
 
     #[arg(short, long, default_value = "debug")]
-    log_level: log::LevelFilter,
+    log_level: log::Level,
 
     #[arg(short, long)]
     output_log_file: Option<Path>,

@@ -171,11 +171,6 @@ impl ConfigResolver {
                     },
                 })
                 .collect::<Vec<Ipv4Addr>>();
-            if result.is_empty() {
-                log::warn!(
-                    "no match for {requested_name:#?} found in upstream found in any upstream server"
-                );
-            }
             result.extend(lookup_result.iter().map(|ip| ip.to_string()));
             log::info!("resolved {requested_name} to {result}", result = result.join(", "));
         }

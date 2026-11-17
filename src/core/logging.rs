@@ -4,8 +4,8 @@ use iocore::Path;
 use log::{Level, debug, error, info, log_enabled, trace, warn};
 use owo_colors::{OwoColorize, Style,Rgb};
 
-pub fn color_for_level(level: log::LevelFilter) -> Color {
-    use log::LevelFilter::*;
+pub fn color_for_level(level: log::Level) -> Color {
+    use log::Level::*;
     match level {
         Off => (Color::TrueColor { r: 171, g: 148, b: 122 }),
         Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
@@ -26,7 +26,7 @@ pub fn style_from_fern_color(color: Color) -> Style {
 }
 
 pub fn setup_logger(
-    level: log::LevelFilter,
+    level: log::Level,
     output_file: Option<Path>,
 ) -> Result<(), fern::InitError> {
     // let mut colors = ColoredLevelConfig::new()
@@ -49,7 +49,7 @@ pub fn setup_logger(
 
             out.finish(format_args!("\x1b[0m[{level}] [{timestamp}] {target}: {message}", level=level.style(style)))
         })
-        .level(level)
+        .level(level.to_level_filter())
         .chain(std::io::stderr());
     if let Some(output_file) = output_file {
         dsp = dsp.chain(match fern::log_file(&output_file) {
