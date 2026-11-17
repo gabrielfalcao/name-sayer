@@ -85,7 +85,7 @@ pub fn display_banner<T: std::fmt::Display>(text: T)
 async fn main() -> std::result::Result<(), Report>
 {
     let domain_config = DomainConfig::load(
-        Path::new(env::var("CARGO_MANIFEST_DIR")?).join("config.yaml"),
+        Path::from(dirs::config_dir()).join("config.yaml"),
     )
     .unwrap_or_default();
     let mut app = Application::new(domain_config);

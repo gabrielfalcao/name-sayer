@@ -57,8 +57,7 @@ impl ConfigResolver {
         Ok(ConfigResolver { store, resolver })
     }
     pub fn load_default_opt_conf() -> Result<ConfigResolver> {
-        let path =
-            Path::new(env::var("CARGO_MANIFEST_DIR")?).join("config.yaml").try_canonicalize();
+        let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
         Ok(ConfigResolver::load(&path)?)
     }
     pub fn new(
