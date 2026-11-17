@@ -4,5 +4,5 @@ pub use errors::{Error, Exit, Result};
 pub mod dispatch;
 pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 
-pub(crate) mod dns_server;
-pub use dns_server::*;
+#[doc(hidden)] pub mod core;
+#[doc(inline)] pub use core::setup_logger;
