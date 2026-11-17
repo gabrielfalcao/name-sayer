@@ -11,8 +11,8 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 #[doc(inline)]
 pub use config::{ConfigItem, ConfigResolver, DomainConfig, SinkDomain, SinksConfig};
 
-#[doc(hidden)] pub mod resolvers;
-#[doc(inline)] pub use resolvers::{PrintProvider, UpstreamResolver, query};
+#[doc(hidden)] pub mod client;
+#[doc(inline)] pub use client::{PrintProvider, query};
 
 #[doc(hidden)] pub mod http;
 #[doc(inline)] pub use http::{HTTPRequest, HTTPResponse};
