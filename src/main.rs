@@ -1,10 +1,10 @@
 #![allow(unused)]
 use std::net::Ipv4Addr;
 
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
 use iocore::{Path, env};
-use name_sayer::{DNSServer, DomainConfig};
+use name_sayer::DNSServer;
 use tokio::net::UdpSocket;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, disable_help_flag = true)]
@@ -51,18 +51,17 @@ pub struct Cli {
 pub struct Application {
     cli: Cli,
     server: DNSServer,
-    domain_config: DomainConfig,
 }
 
 impl Default for Application {
     fn default() -> Self {
-        Application::new(DomainConfig::default())
+        Application::new()
     }
 }
 
 impl Application {
-    pub fn new(domain_config: DomainConfig) -> Application {
-        Application { cli: Cli::parse(), server: DNSServer::default(), domain_config }
+    pub fn new() -> Application {
+        Application { cli: Cli::parse(), server: DNSServer::default() }
     }
 
     pub async fn serve(&mut self) -> Result<()> {
@@ -90,8 +89,7 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
 async fn main() -> std::result::Result<(), Report> {
     let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
 
-    let domain_config = DomainConfig::load(path).unwrap_or_default();
-    let mut app = Application::new(domain_config);
+    let mut app = Application::new();
     app.serve().await?;
     Ok(())
 }
