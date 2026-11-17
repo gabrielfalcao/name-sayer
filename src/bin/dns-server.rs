@@ -5,7 +5,7 @@ use clap::Parser;
 use color_eyre::eyre::{Report, Result};
 use iocore::{Path, env};
 use tokio::net::UdpSocket;
-use white_box::{DNSServer, DomainConfig};
+use name_sayer::{DNSServer, DomainConfig};
 #[derive(Parser, Debug, Clone)]
 #[command(
     author,
@@ -85,7 +85,7 @@ pub fn display_banner<T: std::fmt::Display>(text: T)
 async fn main() -> std::result::Result<(), Report>
 {
     let domain_config = DomainConfig::load(
-        Path::from(dirs::config_dir()).join("config.yaml"),
+        Path::from(dirs::config_dir().unwrap()).join("config.yaml"),
     )
     .unwrap_or_default();
     let mut app = Application::new(domain_config);

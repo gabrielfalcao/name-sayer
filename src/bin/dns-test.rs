@@ -1,5 +1,5 @@
 use fast_glob::glob_match;
-use white_box::Exit;
+use name_sayer::Exit;
 
 fn main() -> Exit
 {

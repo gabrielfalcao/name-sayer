@@ -5,8 +5,8 @@ use hickory_resolver::config::{
     ConnectionConfig, NameServerConfig, ProtocolConfig, ResolverConfig,
 };
 use tokio::runtime::Runtime;
-use white_box::dispatch::ParserDispatcher;
-use white_box::{Error, Exit, Result, query};
+use name_sayer::dispatch::ParserDispatcher;
+use name_sayer::{Error, Exit, Result, query};
 
 pub fn name_server_config_from_socket_addr_v4(
     addr: SocketAddrV4,
@@ -56,7 +56,7 @@ impl Cli
 }
 impl ParserDispatcher<Error> for Cli
 {
-    fn dispatch(&self) -> Result<()>
+    fn dispatch(&mut self) -> Result<()>
     {
         let domain = self.domain();
 
