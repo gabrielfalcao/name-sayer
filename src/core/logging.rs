@@ -17,7 +17,13 @@ pub fn setup_logger(
         .level(log_level)
         .chain(std::io::stderr());
     if let Some(output_file) = output_file {
-        dsp = dsp.chain(fern::log_file(&output_file))
+        dsp = dsp.chain(match fern::log_file(&output_file){
+            Ok(output) => output,
+            Err(error) => {
+                log::error!("failed to setup log output to {output_file}: {error}");
+                std::process::exit(1);
+            }
+        })
     }
     dsp.apply()?;
     Ok(())

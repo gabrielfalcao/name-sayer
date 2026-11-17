@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 edition = "2024"
 autoexamples = false
 autobenches = false
-# default-run = "name-sayer"
+default-run = "name-sayer"
 
 # categories = [] # https://crates.io/category_slugs
 
@@ -60,6 +60,7 @@ eyre = "0.6.14"
 fast-glob = "1.1.2"
 fern = { version = "0.7.1", features = ["colored", "date-based", "libc", "meta-logging-in-format", "reopen-03", "reopen-1", "reopen03", "reopen1", "syslog-3", "syslog-4", "syslog-6", "syslog-7", "syslog3", "syslog4", "syslog6", "syslog7"] }
 flate2 = { version = "1.1.11", features = ["any_zlib", "cloudflare_zlib", "document-features", "libz-ng-sys", "libz-sys", "miniz-sys", "zlib", "zlib-default", "zlib-ng", "zlib-ng-compat", "zlib-rs"] }
+hickory-net = "0.26.3"
 hickory-proto = { version = "0.26.3", features = ["access-control", "dnssec-aws-lc-rs", "dnssec-ring", "mdns", "no-std-rand", "serde", "testing", "wasm-bindgen"] }
 hickory-resolver = { version = "0.26.3", features = ["dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "rustls-platform-verifier", "serde", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
 hickory-server = { version = "0.26.3", features = ["blocklist", "dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "resolver", "rustls-platform-verifier", "sqlite", "testing", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
@@ -92,4 +93,3 @@ url = { version = "2.5.8", features = ["expose_internals", "serde"] }
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
-

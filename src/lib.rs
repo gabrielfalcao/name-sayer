@@ -19,3 +19,6 @@ pub use config::{ConfigItem, ConfigResolver, DomainConfig, SinkDomain, SinksConf
 
 #[doc(hidden)] pub mod io;
 #[doc(inline)] pub use io::{TokioExecutor, TokioTimer};
+
+#[doc(hidden)] pub mod server;
+#[doc(inline)] pub use server::DNSServer;

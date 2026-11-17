@@ -1,7 +1,6 @@
 use std::fmt::Display;
-
+use std::net::AddrParseError;
 use serde::{Deserialize, Serialize};
-
 use thiserror::Error as ThisError;
 #[derive(Debug, ThisError)]
 pub enum Error {
@@ -9,9 +8,12 @@ pub enum Error {
     IOError(#[from] std::io::Error),
     #[error("I/O Error {0}")]
     IOCoreError(#[from] iocore::Error),
-
+    #[error("I/O Error {0}")]
+    HickoryResolverError(#[from] hickory_net::NetError),
     #[error("Runtime Error {0}")]
     RuntimeError(String),
+    #[error("Failed to parse address: {0}")]
+    Ipv4ParseError(#[from] AddrParseError),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

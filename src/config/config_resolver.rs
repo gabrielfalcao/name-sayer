@@ -127,7 +127,7 @@ impl ConfigResolver {
             log::info!("looking for {name_value:#?} ", name_value = name_value.to_string());
             // eprintln!("<STORE CONTENTS length={}>",self.store.len());
             for (addr, names) in self.store.iter() {
-                !(
+                log::debug!(
                     "looking whether {name_value:#?}
                      is match to {addr:#?}\n",
                     name_value = name_value.to_string(),
@@ -199,8 +199,9 @@ impl ConfigResolver {
             // ("opendns", Ipv4Addr::new(208, 67, 220, 222)),
             // ("opendns", Ipv4Addr::new(208, 67, 222, 220)),
         ];
-        for (name, ipv4) in upstream_servers.iter() {
+        for (name, ipv4) in upstream_servers.into_iter() {
             log::trace!("adding upstream server from {name}: {ipv4}");
+
             result.push(ipv4);
         }
         Ok(result)
