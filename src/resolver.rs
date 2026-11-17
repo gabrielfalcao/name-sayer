@@ -19,13 +19,14 @@ use regex::Regex;
 use crate::{Error, Result};
 #[derive(Debug, Clone)]
 pub struct ConfigResolver {
+    blocking_ip: Ipv4Addr,
     store: BTreeMap<Name, Ipv4Addr>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
     upstream_servers: Vec<(String, Ipv4Addr)>,
 }
 impl Default for ConfigResolver {
     fn default() -> ConfigResolver {
-        ConfigResolver::load().unwrap()
+        ConfigResolver::load(Ipv4Addr::new(23, 50, 77, 69)).unwrap()
     }
 }
 pub fn normalize_domain_name<T: Display>(name: T) -> Result<Name> {
@@ -83,6 +84,7 @@ impl ConfigResolver {
         Ok(())
     }
     pub fn new(
+        blocking_ip: Ipv4Addr,
         servers: ServerGroup,
         upstream_servers: Vec<(String, Ipv4Addr)>,
         resolver: HickoryResolver<TokioRuntimeProvider>,
@@ -93,9 +95,9 @@ impl ConfigResolver {
         )
         .build()?;
 
-        Ok(ConfigResolver { store: BTreeMap::new(), resolver, upstream_servers })
+        Ok(ConfigResolver { store: BTreeMap::new(), resolver, upstream_servers, blocking_ip })
     }
-    pub fn load<'a>() -> Result<ConfigResolver> {
+    pub fn load<'a>(blocking_ip: Ipv4Addr) -> Result<ConfigResolver> {
         let upstream_servers = ConfigResolver::load_default_upstream_servers()?;
         let ips = upstream_servers
             .clone()
@@ -109,7 +111,7 @@ impl ConfigResolver {
         )
         .build()?;
         let mut store = BTreeMap::new();
-        Ok(ConfigResolver { store, resolver, upstream_servers })
+        Ok(ConfigResolver { store, resolver, upstream_servers, blocking_ip })
     }
     pub async fn resolve<I: Display, T: Iterator<Item = I>>(
         &self,
@@ -120,7 +122,7 @@ impl ConfigResolver {
             .map(|name| match normalize_domain_name(&name) {
                 Ok(name) => name,
                 Err(error) => {
-                    log::error!("failed to parse name {name:#?}: {error}",name=name.to_string());
+                    log::error!("failed to parse name {name:#?}: {error}", name = name.to_string());
                     Name::new()
                 }
             })
@@ -161,16 +163,20 @@ impl ConfigResolver {
                 .iter()
                 .filter(|ipaddr| ipaddr.is_ipv4())
                 .map(|ipaddr| match ipaddr {
-                    IpAddr::V4(addr) => addr.to_string(),
-                    IpAddr::V6(_) => unreachable!(),
+                    IpAddr::V4(addr) => addr,
+                    IpAddr::V6(v6) => {
+                        log::error!("IPV6 found for {requested_name} but IPv6 is unacceptable by name-sayer, throwring it away: {v6}");
+                        self.blocking_ip
+
+                    },
                 })
-                .collect::<Vec<String>>();
+                .collect::<Vec<Ipv4Addr>>();
             if result.is_empty() {
                 log::warn!(
                     "no match for {requested_name:#?} found in upstream found in any upstream server"
                 );
             }
-            result.extend(result.clone());
+            result.extend(lookup_result.iter().map(|ip| ip.to_string()));
             log::info!("resolved {requested_name} to {result}", result = result.join(", "));
         }
         Ok(result)
