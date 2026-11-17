@@ -1,5 +1,6 @@
-use std::fmt::Display;
-use std::net::AddrParseError;
+use std::{fmt::Display, net::AddrParseError};
+
+use hickory_proto::ProtoError;
 use serde::{Deserialize, Serialize};
 use thiserror::Error as ThisError;
 #[derive(Debug, ThisError)]
@@ -14,6 +15,8 @@ pub enum Error {
     RuntimeError(String),
     #[error("Failed to parse address: {0}")]
     Ipv4ParseError(#[from] AddrParseError),
+    #[error("Protocol Error: {0}")]
+    ProtoError(#[from] ProtoError),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
