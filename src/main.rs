@@ -11,11 +11,37 @@ use tokio::net::UdpSocket;
 pub struct Cli {
     #[arg(short, long, default_value = "53")]
     port: u16,
+
     #[arg(short, long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
     #[arg(short, long, default_value = "debug")]
     log_level: log::LevelFilter,
+
+    #[arg(short, long)]
+    blocklist_files: Vec<Path>,
+
+    #[arg(short,
+          long,
+          help = "do not terminate resolving blocked names, leaves the dns-client hanging (not recommended)",
+          action = ArgAction::SetTrue,
+    )]
+    block_non_terminate: bool,
+
+    #[arg(short,
+          long,
+          help = "resolve all blocked names to the ipv4 address designated in --block-terminate-ipv4",
+          action = ArgAction::SetTrue,
+    )]
+    block_terminate: bool,
+
+    #[arg(
+        short,
+        long,
+        help = "an IP address to which all blocked names will resolve to",
+        default_value = "23.50.77.69"
+    )]
+    block_terminate_ipv4: Ipv4Addr,
 
     #[arg(short = 'H', long)]
     help: bool,
@@ -62,8 +88,7 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), Report> {
-        let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
-
+    let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
 
     let domain_config = DomainConfig::load(path).unwrap_or_default();
     let mut app = Application::new(domain_config);

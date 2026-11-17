@@ -18,7 +18,7 @@ use tokio::net::UdpSocket;
 // use hickory_server::authority::MessageResponseBuilder;
 use crate::ConfigResolver;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct DNSServer
 {
     upstream: ConfigResolver,
