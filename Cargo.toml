@@ -1,0 +1,93 @@
+[package]
+name = "name-sayer"
+version = "0.0.1"
+description = "name-sayer command-line"
+readme = "README.md"
+homepage = "https://crates.io/crates/name-sayer"
+license = "MIT OR Apache-2.0"
+edition = "2024"
+autoexamples = false
+autobenches = false
+# default-run = "name-sayer"
+
+# categories = [] # https://crates.io/category_slugs
+
+
+[package.metadata]
+targets = [
+    # "aarch64-apple-darwin",
+    # "x86_64-unknown-linux-gnu",
+    # "aarch64-unknown-linux-gnu",
+]
+
+[profile.release] # https://github.com/johnthagen/min-sized-rust
+strip = true  # Automatically strip symbols from the binary.
+opt-level = "z"  # Optimize for size. https://doc.rust-lang.org/cargo/reference/profiles.html#opt-level
+lto = true
+panic = "abort"
+codegen-units = 1
+# https://github.com/johnthagen/min-sized-rust?tab=readme-ov-file#remove-fmtdebug
+
+
+
+[lib]
+name = "dns_server"
+path = "src/lib.rs"
+
+doctest = false
+bench = false
+
+
+[[bin]]
+name = "name-sayer"
+path = "src/main.rs"
+doctest = false
+bench = false
+doc = false
+test = false
+
+[dependencies]
+async-trait = "0.1.92"
+axum = { version = "0.8.9", features = ["http2", "macros", "multipart", "ws"] }
+base64 = "0.23.1"
+bytes = { version = "1.12.1", features = ["serde"] }
+clap = { version = "4.6.8", features = ["cargo", "debug", "deprecated", "derive", "env", "string", "unicode", "unstable-derive-ui-tests", "unstable-doc", "unstable-ext", "unstable-markdown", "unstable-styles", "unstable-v5", "wrap_help"] }
+color-eyre = { version = "0.6.5", features = ["issue-url", "url"] }
+debug-et-diagnostics = "0.3.1"
+eyre = "0.6.14"
+fast-glob = "1.1.2"
+fern = { version = "0.7.1", features = ["colored", "date-based", "libc", "meta-logging-in-format", "reopen-03", "reopen-1", "reopen03", "reopen1", "syslog-3", "syslog-4", "syslog-6", "syslog-7", "syslog3", "syslog4", "syslog6", "syslog7"] }
+flate2 = { version = "1.1.11", features = ["any_zlib", "cloudflare_zlib", "document-features", "libz-ng-sys", "libz-sys", "miniz-sys", "zlib", "zlib-default", "zlib-ng", "zlib-ng-compat", "zlib-rs"] }
+hickory-proto = { version = "0.26.3", features = ["access-control", "dnssec-aws-lc-rs", "dnssec-ring", "mdns", "no-std-rand", "serde", "testing", "wasm-bindgen"] }
+hickory-resolver = { version = "0.26.3", features = ["dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "rustls-platform-verifier", "serde", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
+hickory-server = { version = "0.26.3", features = ["blocklist", "dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "resolver", "rustls-platform-verifier", "sqlite", "testing", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
+http = "1.5.0"
+http-body = "1.1.0"
+http-body-util = { version = "0.1.5", features = ["full"] }
+hyper = { version = "1.12.0", features = ["full"] }
+hyper-util = { version = "0.1.21", features = ["client", "client-legacy", "client-pool", "client-proxy", "client-proxy-system", "full", "http1", "http2", "rt-tracing-exec-force", "server", "server-auto", "server-graceful", "service", "tokio", "tracing"] }
+iocore = "3.2.0"
+log = "0.4.35"
+logger = "0.4.0"
+nom = "8.0.0"
+owo-colors = { version = "4.4.0", features = ["supports-color", "supports-colors"] }
+pest = { version = "2.9.6", features = ["miette-error", "pretty-print", "stack-guard"] }
+pest_derive = "2.9.6"
+pin-project-lite = "0.2.17"
+regex = { version = "1.13.1", features = ["logging", "pattern", "perf-dfa-full", "unstable", "use_std"] }
+reqwest = { version = "0.13.5", features = ["json", "query", "multipart", "blocking", "cookies", "gzip", "form"] }
+serde = { version = "1.0.229", features = ["derive", "rc", "serde_derive", "unstable"] }
+serde_json = { version = "1.0.154", features = ["arbitrary_precision", "float_roundtrip", "indexmap", "preserve_order", "raw_value", "unbounded_depth"] }
+serde_yaml = "0.9.34"
+supports-color = "3.0.2"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = ["fs", "full", "io-std", "io-uring", "io-util", "libc", "macros", "mio", "net", "parking_lot", "process", "rt", "rt-multi-thread", "schedule-latency", "signal", "signal-hook-registry", "socket2", "sync", "taskdump", "test-util", "time", "tokio-macros", "tracing", "windows-sys"] }
+toml = { version = "1.2.1", features = ["fast_hash", "preserve_order", "unbounded"] }
+toml_edit = { version = "0.25.19", features = ["serde", "unbounded"] }
+tracing = { version = "0.1.44", features = ["async-await", "log", "log-always", "max_level_debug", "max_level_error", "max_level_info", "max_level_off", "max_level_trace", "max_level_warn", "release_max_level_debug", "release_max_level_error", "release_max_level_info", "release_max_level_off", "release_max_level_trace", "release_max_level_warn", "valuable"] }
+tracing-subscriber = { version = "0.3.23", features = ["chrono", "env-filter", "json", "local-time", "matchers", "once_cell", "parking_lot", "regex", "serde", "serde_json", "time", "tracing", "tracing-serde", "valuable", "valuable-serde", "valuable_crate"] }
+url = { version = "2.5.8", features = ["expose_internals", "serde"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
+
