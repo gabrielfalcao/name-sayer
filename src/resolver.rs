@@ -74,7 +74,7 @@ impl ConfigResolver {
     /// the blocked ones and has the potential to replace blocked
     /// addresses
     pub fn register_record(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
-        let name = Name::parse(&name, None)?;
+        let name = BlockedAddress::new(&name)?;
         if let Some(x) = self.store.get_mut(&name) {
             if x.to_string() != addr.to_string() {
                 *x = addr;
