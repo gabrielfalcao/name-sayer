@@ -21,7 +21,7 @@ pub struct Cli {
     #[arg(short, long)]
     output_log_file: Option<Path>,
 
-    #[arg(short, long)]
+    #[arg(short, long, default_value = "blocklist.txt")]
     blocklist_files: Vec<Path>,
 
     #[arg(long,
@@ -99,14 +99,12 @@ async fn main() -> std::result::Result<(), Report> {
     for file in app.cli.blocklist_files.iter() {
         let lines = file
             .read_lines()?
-            // .into_iter()
-            // .filter(|l| l.trim().len() > 0)
-            // .map(|s| BlockedAddress::new(s))
-            // .filter(|a| a.is_ok())
-            // .map(|a| a.unwrap())
-            // .collect::<Vec<BlockedAddress>>();
-            // .collect::<Vec<String>>()
-            ;
+            .into_iter()
+            .filter(|l| l.trim().len() > 0)
+            .map(|s| BlockedAddress::new(s))
+            .filter(|a| a.is_ok())
+            .map(|a| a.unwrap())
+            .collect::<Vec<BlockedAddress>>();
     }
     for name in names {
         app.server.upstream.add_upstream_server_ipv4(name, app.cli.block_terminate_ipv4)?;
