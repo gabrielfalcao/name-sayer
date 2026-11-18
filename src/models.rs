@@ -101,3 +101,8 @@ impl From<String> for BlockedAddress {
         BlockedAddress(s)
     }
 }
+impl Into<Name> for BlockedAddress {
+    fn into(self) -> Name {
+        self.name().expect("proto name")
+    }
+}

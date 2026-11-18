@@ -14,13 +14,14 @@ use hickory_server::net::runtime::TokioRuntimeProvider;
 use iocore::{Path, env};
 use regex::Regex;
 
+use crate::BlockedAddress;
 // use hickory_proto::rr::LowerName;
 // use debug_et_diagnostics::dbg;
 use crate::{Error, Result};
 #[derive(Debug, Clone)]
 pub struct ConfigResolver {
     blocking_ip: Ipv4Addr,
-    store: BTreeMap<Name, Ipv4Addr>,
+    store: BTreeMap<BlockedAddress, Ipv4Addr>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
     upstream_servers: Vec<(String, Ipv4Addr)>,
 }
