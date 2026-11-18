@@ -5,7 +5,7 @@
 	<key>KeepAlive</key>
 	<true/>
 	<key>Label</key>
-	<string>homebrew.mxcl.dnsmasq</string>
+	<string>codes.poems.name-sayer</string>
 	<key>LimitLoadToSessionType</key>
 	<array>
 		<string>Aqua</string>
@@ -15,21 +15,18 @@
 	</array>
 	<key>ProgramArguments</key>
 	<array>
-		<!-- <string>/opt/homebrew/opt/dnsmasq/sbin/dnsmasq</string> -->
-		<string>/opt/bin/dnsmasq-decoy</string>
+		<!-- <string>/opt/homebrew/opt/name-sayer/sbin/name-sayer</string> -->
+		<string>/usr/local/bin/name-sayer</string>
 
-		<string>--keep-in-foreground</string>
-		<string>-C</string>
-		<string>/opt/homebrew/etc/dnsmasq.conf</string>
-		<string>-7</string>
-		<string>/opt/homebrew/etc/dnsmasq.d,*.conf</string>
+		<string>--blocklist-files</string>
+		<string>/opt/name-sayer/blocklist.txt</string>
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
         <key>StandardOutPath</key>
-	<string>/var/log/dnsmasq.stdout.log</string>
+	<string>/var/log/name-sayer.stdout.log</string>
         <key>StandardErrorPath</key>
-	<string>/var/log/dnsmasq.stderr.log</string>
+	<string>/var/log/name-sayer.stderr.log</string>
         <key>Debug</key>
         <true/>
         <key>ProcessType</key>
