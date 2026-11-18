@@ -90,7 +90,7 @@ impl ConfigResolver {
         upstream_servers: Vec<(String, Ipv4Addr)>,
         resolver: HickoryResolver<TokioRuntimeProvider>,
     ) -> Result<ConfigResolver> {
-        let resolver = HickoryResolver::builder_with_config(
+        let mut resolver = HickoryResolver::builder_with_config(
             ResolverConfig::udp_and_tcp(&servers),
             TokioRuntimeProvider::default(),
         )
@@ -115,7 +115,7 @@ impl ConfigResolver {
         Ok(ConfigResolver { store, resolver, upstream_servers, blocking_ip })
     }
     pub async fn resolve<I: Display, T: Iterator<Item = I>>(
-        &self,
+        &mut self,
         addresses: T,
     ) -> Result<Vec<String>> {
         let mut result = Vec::<String>::new();
@@ -167,9 +167,6 @@ impl ConfigResolver {
                     return Ok(result);
                 }
             }
-            if !is_blocked {
-                log::warn!("no match found locally for {requested_name}, querying upstream");
-            }
 
             let upstream = self.resolver.clone();
             // eprintln!("not found in local store, so querying upstream server {upstream:#?}: {requested_name:#?}");
@@ -187,8 +184,21 @@ impl ConfigResolver {
                     },
                 })
                 .collect::<Vec<Ipv4Addr>>();
-            result.extend(lookup_result.iter().map(|ip| ip.to_string()));
-            log::info!("resolved {requested_name} to {result}", result = result.join(", "));
+            if !is_blocked {
+                log::warn!(
+                    "no match found locally for {requested_name}, upstream resolved to: {ips}",
+                    ips = matched_ips
+                        .iter()
+                        .map(|ip| ip.to_string())
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                );
+                for ip in matched_ips {
+                    self.register_record(requested_name.to_string(), ip);
+                }
+                result.extend(lookup_result.iter().map(|ip| ip.to_string()));
+                log::info!("resolved {requested_name} to {result}", result = result.join(", "));
+            }
         }
         Ok(result)
     }

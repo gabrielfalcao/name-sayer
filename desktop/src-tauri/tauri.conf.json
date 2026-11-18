@@ -14,7 +14,13 @@
       {
         "title": "name-sayer",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "resizable": true,
+        "center": true,
+        "closable": true,
+        "shadow": true,
+        "visibleOnAllWorkspaces": true,
+        "visible": true
       }
     ],
     "security": {

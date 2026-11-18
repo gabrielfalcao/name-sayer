@@ -5,6 +5,9 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "core:tray:default",
+    "core:menu:default",
+    "core:event:default",
     "opener:default"
   ]
 }

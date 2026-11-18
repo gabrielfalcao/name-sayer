@@ -33,20 +33,6 @@ impl Default for DNSServer {
     }
 }
 impl DNSServer {
-    // pub fn add_records<T: Into<Name> + std::fmt::Display, I: Iterator<Item = Ipv4Addr>>(
-    //     &mut self,
-    //     name: T,
-    //     records: I,
-    // ) -> Result<()> {
-    //     self.upstream.add_records(name, records)?;
-    //     Ok(())
-    // }
-
-    // pub fn add_upstream(&mut self, addr: Ipv4Addr) -> Result<()> {
-    //     self.upstream.add_upstream_server_ipv4(addr)?;
-    //     Ok(())
-    // }
-
     pub async fn start(self, socket: UdpSocket) -> Result<(), Report> {
         let mut server = Server::new(self);
         let socket_addr = socket.local_addr()?;
@@ -90,7 +76,8 @@ impl RequestHandler for DNSServer {
             .map(|query| query.name().to_string())
             .collect::<Vec<String>>();
 
-        match self.upstream.resolve(names_to_resolve.into_iter()).await {
+        let mut upstream = self.upstream.clone();
+        match upstream.resolve(names_to_resolve.into_iter()).await {
             Ok(ipv4_addrs) => {
                 let records: Vec<_> = ipv4_addrs
                     .clone()
