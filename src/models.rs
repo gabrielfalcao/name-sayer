@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, fmt::Display, sync::LazyLock};
+use std::{collections::BTreeMap, fmt::Display, str::FromStr, sync::LazyLock};
 
 use fast_glob::glob_match;
 use hickory_proto::rr::domain::Name;
@@ -85,5 +85,19 @@ impl BlockedAddress {
 impl Display for BlockedAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.as_str(),)
+    }
+}
+
+impl FromStr for BlockedAddress {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(BlockedAddress::new(s)?)
+    }
+}
+
+impl From<String> for BlockedAddress {
+    fn from(s: String) -> BlockedAddress {
+        BlockedAddress(s)
     }
 }
