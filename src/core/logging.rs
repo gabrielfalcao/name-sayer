@@ -7,7 +7,7 @@ use owo_colors::{OwoColorize, Style,Rgb};
 pub fn color_for_level(level: log::Level) -> Color {
     use log::Level::*;
     match level {
-        off => (Color::TrueColor { r: 171, g: 148, b: 122 }),
+        off => (Color::TrueColor { r:30, g: 188, b: 115}),
         Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
         Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
         Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
@@ -29,25 +29,20 @@ pub fn setup_logger(
     level: log::Level,
     output_file: Option<Path>,
 ) -> Result<(), fern::InitError> {
-    // let mut colors = ColoredLevelConfig::new()
-    //     .info(COLOR_INFO)
-    //     .warn(COLOR_WARN)
-    //     .error(COLOR_ERROR)
-    //     .debug(COLOR_DEBUG)
-    //     .trace(COLOR_TRACE);
 
     let mut dsp = fern::Dispatch::new()
         .format(move |out, message, record| {
             let now = Local::now();
             let timestamp = now.format("%Y/%m/%dT%H:%M:%S.%f");
-            let color = color_for_level(level);
+            let color = color_for_level(record.level());
             let style = style_from_fern_color(color);
             let level = level.as_str().to_string();
-
+            let file = record.file().unwrap_or("unknown");
+            let line = record.line().unwrap_or(0);
             let target = record.target();
             let message = message.style(style);
 
-            out.finish(format_args!("\x1b[0m[{level}] [{timestamp}] {target}: {message}", level=level.style(style)))
+            out.finish(format_args!("\x1b[0m[{level}] [{timestamp}] {target}:{file}:{line} => {message}", level=level.style(style)))
         })
         .level(level.to_level_filter())
         .chain(std::io::stderr());

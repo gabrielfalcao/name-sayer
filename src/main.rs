@@ -15,6 +15,9 @@ pub struct Cli {
     #[arg(short = 'H', long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
+    #[arg(short, long, default_value = "warn")]
+    log_level: log::Level,
+
     #[arg(short, long)]
     output_log_file: Option<Path>,
 
@@ -91,18 +94,19 @@ async fn main() -> std::result::Result<(), Report> {
 
     let mut app = Application::new();
     app.server.blocking_ip = app.cli.block_terminate_ipv4;
-    setup_logger(app.cli.output_log_file.clone())?;
+    setup_logger(app.cli.log_level, app.cli.output_log_file.clone())?;
     let mut names = Vec::<String>::new();
     for file in app.cli.blocklist_files.iter() {
         let lines = file
             .read_lines()?
-            .into_iter()
-            .filter(|l| l.trim().len() > 0)
-            .map(|s| BlockedAddress::new(s))
-            .filter(|a| a.is_ok())
-            .map(|a| a.unwrap())
-            .collect::<Vec<BlockedAddress>>();
-        names.extend(names.clone());
+            // .into_iter()
+            // .filter(|l| l.trim().len() > 0)
+            // .map(|s| BlockedAddress::new(s))
+            // .filter(|a| a.is_ok())
+            // .map(|a| a.unwrap())
+            // .collect::<Vec<BlockedAddress>>();
+            // .collect::<Vec<String>>()
+            ;
     }
     for name in names {
         app.server.upstream.add_upstream_server_ipv4(name, app.cli.block_terminate_ipv4)?;

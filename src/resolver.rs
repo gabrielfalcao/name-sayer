@@ -14,7 +14,7 @@ use hickory_server::net::runtime::TokioRuntimeProvider;
 use iocore::{Path, env};
 use regex::Regex;
 
-use crate::BlockedAddress;
+use crate::{BlockedAddress, server::DEFAULT_BLOCKING_IP};
 // use hickory_proto::rr::LowerName;
 // use debug_et_diagnostics::dbg;
 use crate::{Error, Result};
@@ -149,6 +149,7 @@ impl ConfigResolver {
                 if name.matches_address(&requested_name)? {
                     result.push(ipv4.to_string());
                     log::warn!("blocking {requested_name} to {ipv4}");
+                    return Ok(result);
                 } else {
                     log::warn!("WAT");
                 }
@@ -157,7 +158,19 @@ impl ConfigResolver {
             if total_found > 0 {
                 return Ok(result);
             }
-            log::warn!("no match found locally, querying upstream for {requested_name:#?}\n");
+            let mut is_blocked = false;
+            for blocked in self.store.keys() {
+                if blocked.matches_other(blocked.clone())? {
+                    log::warn!("blocking {requested_name}, to {DEFAULT_BLOCKING_IP}");
+                    result.push(DEFAULT_BLOCKING_IP.to_string());
+                    is_blocked = true;
+                    return Ok(result);
+                }
+            }
+            if !is_blocked {
+                log::warn!("no match found locally for {requested_name}, querying upstream");
+            }
+
             let upstream = self.resolver.clone();
             // eprintln!("not found in local store, so querying upstream server {upstream:#?}: {requested_name:#?}");
             let lookup_result = upstream.lookup_ip(requested_name.clone()).await?;

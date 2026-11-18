@@ -16,7 +16,7 @@ static REGEX: LazyLock<Regex> = LazyLock::new(|| {
     .unwrap()
 });
 pub fn validate_blocked_address<T: Display>(address: T) -> Result<String> {
-    let value = address.to_string().trim_start_matches('.').to_string();
+    let value = address.to_string().trim_matches('.').to_string();
     match Name::parse(&value, None) {
         Ok(value) => Ok(value.to_string()),
         Err(err) => {

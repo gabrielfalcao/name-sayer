@@ -77,7 +77,7 @@ impl RequestHandler for DNSServer {
         let _mr: &MessageRequest = request.deref();
         // eprintln!("{} requests ip address of {}", info.src, info.query.name());
         let builder = MessageResponseBuilder::from_message_request(request);
-        let blocking_ip = Ipv4Addr::new(23, 50, 77, 69);
+        let blocking_ip = DEFAULT_BLOCKING_IP;
         let mut metadata = Metadata::response_from_request(info.metadata);
         metadata.authoritative = true;
         let _header = Header { metadata, counts: HeaderCounts::default() };
@@ -99,7 +99,7 @@ impl RequestHandler for DNSServer {
                     .map(|(idx, ipv4)| (idx, ipv4.parse::<Ipv4Addr>()))
                     .filter(|(idx, result)| {
                         if let Err(error) = result {
-                            log::error!("error in ip addr index {idx}: {error}");
+                            // ipv6
                             false
                         } else {
                             true
