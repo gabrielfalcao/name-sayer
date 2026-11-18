@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, Channel } from '@tauri-apps/api/core';
+
 import Container from "react-bootstrap/Container";
 import Alert from "react-bootstrap/Alert";
 
@@ -8,17 +9,22 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
+type SelectedFile = string;
+
+  function App() {
+    const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
   const [file, setFile] = useState("");
-
+  const onEvent = new Channel<SelectedFile>();
+  onEvent.onmessage = (message) => {
+    setFile(message.event)
+  };
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     setGreetMsg(await invoke("greet", { name }));
   }
   async function openFile() {
-    const selectedPath = await invoke<string | null>("open_file");
+    const selectedPath = await invoke<string | null>("open_file", {onEvent});
     if (selectedPath) {
       console.log("Selected file:", selectedPath);
       setFile(selectedPath)

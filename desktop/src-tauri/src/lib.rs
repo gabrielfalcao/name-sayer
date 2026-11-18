@@ -1,19 +1,34 @@
 #![allow(unused)]
 #[doc(hidden)] pub mod errors;
 #[doc(inline)] pub use errors::{Error, Result};
-use tauri::{AppHandle, Emitter, EventTarget, tray::TrayIconBuilder};
+use serde::Serialize;
+use tauri::{
+    AppHandle,
+    Emitter,
+    EventTarget,
+    ipc::Channel,
+    tray::TrayIconBuilder,
+    webview::SelectedFile,
+};
 use tauri_plugin_dialog::DialogExt;
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase", tag = "event")]
+struct SelectedFile {
+    filename: String,
+}
+
 #[tauri::command]
-fn open_file(app: AppHandle) -> Result<()> {
-    app.dialog().file().pick_file(|file_path| match file_path {
+fn open_file(app: AppHandle, on_event: Channel<SelectedFile>) {
+    app.dialog().file().pick_file(move |file_path| match file_path {
         Some(path) => {
+            on_event.send(SelectedFile { filename: path.to_string() }).unwrap();
             println!("{path}");
         }
         None => {
             eprintln!("no path");
         }
     });
-    Ok(())
 }
 #[tauri::command]
 fn download(app: AppHandle, url: String) {
