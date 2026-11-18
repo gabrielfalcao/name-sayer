@@ -4,7 +4,7 @@ use std::net::Ipv4Addr;
 use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
 use iocore::{Path, env};
-use name_sayer::{DNSServer, setup_logger};
+use name_sayer::{BlockedAddress, DNSServer, setup_logger};
 use tokio::net::UdpSocket;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version)]
@@ -97,8 +97,14 @@ async fn main() -> std::result::Result<(), Report> {
     setup_logger(app.cli.log_level, app.cli.output_log_file.clone())?;
     let mut names = Vec::<String>::new();
     for file in app.cli.blocklist_files.iter() {
-        let lines =
-            file.read_lines()?.into_iter().filter(|l| l.trim().len() > 0).collect::<Vec<String>>();
+        let lines = file
+            .read_lines()?
+            .into_iter()
+            .filter(|l| l.trim().len() > 0)
+            .map(|s| BlockedAddress::new(s))
+            .filter(|a| a.is_ok())
+            .map(|a| a.unwrap())
+            .collect::<Vec<BlockedAddress>>();
         names.extend(names.clone());
     }
     for name in names {

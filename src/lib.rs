@@ -21,3 +21,6 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 
 #[doc(hidden)] pub mod resolver;
 #[doc(inline)] pub use resolver::ConfigResolver;
+
+#[doc(hidden)] pub mod models;
+#[doc(inline)] pub use models::{BlockedAddress, validate_blocked_address};

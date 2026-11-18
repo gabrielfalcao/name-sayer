@@ -14,13 +14,14 @@ use hickory_server::net::runtime::TokioRuntimeProvider;
 use iocore::{Path, env};
 use regex::Regex;
 
+use crate::BlockedAddress;
 // use hickory_proto::rr::LowerName;
 // use debug_et_diagnostics::dbg;
 use crate::{Error, Result};
 #[derive(Debug, Clone)]
 pub struct ConfigResolver {
     blocking_ip: Ipv4Addr,
-    store: BTreeMap<Name, Ipv4Addr>,
+    store: BTreeMap<BlockedAddress, Ipv4Addr>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
     upstream_servers: Vec<(String, Ipv4Addr)>,
 }
@@ -29,8 +30,8 @@ impl Default for ConfigResolver {
         ConfigResolver::load(Ipv4Addr::new(23, 50, 77, 69)).unwrap()
     }
 }
-pub fn normalize_domain_name<T: Display>(name: T) -> Result<Name> {
-    Ok(Name::parse(&name.to_string(), None)?)
+pub fn normalize_domain_name<T: Display>(name: T) -> Result<BlockedAddress> {
+    Ok(BlockedAddress::new(&name.to_string())?)
 }
 impl ConfigResolver {
     fn load_default_upstream_servers() -> Result<Vec<(String, Ipv4Addr)>> {
@@ -73,7 +74,7 @@ impl ConfigResolver {
     /// the blocked ones and has the potential to replace blocked
     /// addresses
     pub fn register_record(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
-        let name = Name::parse(&name, None)?;
+        let name = BlockedAddress::new(&name)?;
         if let Some(x) = self.store.get_mut(&name) {
             if x.to_string() != addr.to_string() {
                 *x = addr;
@@ -120,13 +121,15 @@ impl ConfigResolver {
         let mut result = Vec::<String>::new();
         let requested_names = addresses
             .map(|name| match normalize_domain_name(&name) {
-                Ok(name) => name,
+                Ok(name) => Some(name),
                 Err(error) => {
                     log::error!("failed to parse name {name:#?}: {error}", name = name.to_string());
-                    Name::new()
+                    None
                 }
             })
-            .collect::<Vec<Name>>();
+            .filter(|name| name.is_some())
+            .map(|name| name.unwrap())
+            .collect::<Vec<BlockedAddress>>();
         for requested_name in requested_names.clone() {
             // let name = Name::from_str(&requested_name)?;
             // let lower_name = LowerName::new(&name);
@@ -143,7 +146,7 @@ impl ConfigResolver {
                     addr = ipv4.to_string(),
                 );
 
-                if name.eq_case(&requested_name) {
+                if name.matches_address(&requested_name)? {
                     result.push(ipv4.to_string());
                     log::warn!("blocking {requested_name} to {ipv4}");
                 } else {

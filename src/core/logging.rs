@@ -7,11 +7,11 @@ use owo_colors::{OwoColorize, Style,Rgb};
 pub fn color_for_level(level: log::Level) -> Color {
     use log::Level::*;
     match level {
-        Off => (Color::TrueColor { r: 171, g: 148, b: 122 }),
+        off => (Color::TrueColor { r: 171, g: 148, b: 122 }),
         Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
         Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
         Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
-        Debug => (Color::TrueColor { r: 199, g: 220, b: 208 }),
+        Debug => (Color::TrueColor { r:84, g: 126, b: 100,}),
         Trace => (Color::TrueColor { r: 240, g: 79, b: 120 }),
     }
 }
