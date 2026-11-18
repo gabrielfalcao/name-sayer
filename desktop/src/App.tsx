@@ -54,8 +54,40 @@ function App() {
               >
                 Greet
               </Button>
+            </Modal.Body>
+
+            {greetMsg?.length > 0 && (
+              <Modal.Footer>
+                <Alert key="light" variant="light">
+                  {greetMsg}
+                </Alert>
+              </Modal.Footer>
+            )}
+          </Modal.Dialog>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+        <br />
+        <hr />
+        <br />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Modal.Dialog>
+            <Modal.Header
+              closeButton
+              onHide={() => {
+                setFile("");
+              }}
+            >
+              <Modal.Title>Open File</Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
               <Button
-                variant="primary"
+                variant="danger"
                 onClick={(e) => {
                   e.preventDefault();
                   openFile();
@@ -64,12 +96,13 @@ function App() {
               >
                 Open File
               </Button>
+
             </Modal.Body>
 
-            {greetMsg?.length > 0 && (
+            {file?.length > 0 && (
               <Modal.Footer>
                 <Alert key="light" variant="light">
-                  {greetMsg}
+                  {file}
                 </Alert>
               </Modal.Footer>
             )}
