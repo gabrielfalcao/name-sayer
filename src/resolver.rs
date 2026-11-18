@@ -159,12 +159,17 @@ impl ConfigResolver {
                 return Ok(result);
             }
             let mut is_blocked = false;
+            log::warn!("checking if {requested_name} is blocked");
+
             for blocked in self.store.keys() {
                 if blocked.matches_other(blocked.clone())? {
                     log::warn!("blocking {requested_name}, to {DEFAULT_BLOCKING_IP}");
                     result.push(DEFAULT_BLOCKING_IP.to_string());
                     is_blocked = true;
                     return Ok(result);
+                } else {
+                    log::warn!("no blocking found for {requested_name}");
+
                 }
             }
 

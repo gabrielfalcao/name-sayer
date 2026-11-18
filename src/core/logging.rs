@@ -5,14 +5,12 @@ use log::{Level, debug, error, info, log_enabled, trace, warn};
 use owo_colors::{OwoColorize, Rgb, Style};
 
 pub fn color_for_level(level: log::Level) -> Color {
-    use log::Level::*;
     match level {
-        off => (Color::TrueColor { r: 30, g: 188, b: 115 }),
-        Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
-        Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
-        Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
-        Debug => (Color::TrueColor { r: 84, g: 126, b: 100 }),
-        Trace => (Color::TrueColor { r: 240, g: 79, b: 120 }),
+        log::Level::Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
+        log::Level::Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
+        log::Level::Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
+        log::Level::Debug => (Color::TrueColor { r: 84, g: 126, b: 100 }),
+        log::Level::Trace => (Color::TrueColor { r: 240, g: 79, b: 120 }),
     }
 }
 pub fn rgb_from_fern_color(color: Color) -> Rgb {

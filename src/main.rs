@@ -15,7 +15,7 @@ pub struct Cli {
     #[arg(short = 'H', long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
-    #[arg(short, long, default_value = "warn")]
+    #[arg(short, long, default_value = "debug")]
     log_level_max: log::LevelFilter,
 
     #[arg(short, long)]
