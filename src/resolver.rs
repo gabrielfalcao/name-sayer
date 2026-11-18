@@ -148,10 +148,10 @@ impl ConfigResolver {
 
                 if name.matches_address(&requested_name)? {
                     result.push(ipv4.to_string());
-                    log::warn!("blocking {requested_name} to {ipv4}");
+                    log::warn!("matched name {name} to {requested_name}, blocking access via ip address {ipv4}");
                     return Ok(result);
                 } else {
-                    log::warn!("WAT");
+                    log::warn!("failed to match name {name} to {requested_name}, proceeding with resolution via upstream");
                 }
             }
             let total_found = result.len();
@@ -202,42 +202,4 @@ impl ConfigResolver {
         }
         Ok(result)
     }
-
-    // fn load_config_items(path: &Path) -> Result<Vec<ConfigItem>> {
-    //     let regexp = Regex::new("^(([0-9]{1,3})[.]([0-9]{1,3})[.]([0-9]{1,3})[.]([0-9]{1,3}))$")?;
-    //     let domain_list_file_path = path.clone();
-    //     let mut result = Vec::<ConfigItem>::new();
-    //     let config = DomainConfig::load(&domain_list_file_path)?;
-    //     let name = domain_list_file_path.name();
-    //     for (domain, target) in config.iter_domains()? {
-    //         dbg!((&domain, &target));
-    //     }
-    //     // match domain_list_file_path.read()
-    //     // {
-    //     //     Ok(data) =>
-    //     //     {
-    //     //         let domains = data
-    //     //             .split('\n')
-    //     //             .map(|line| line.trim().to_string())
-    //     //             .filter(|line| line.len() > 0)
-    //     //             .enumerate()
-    //     //             .map(|(idx, line)| (idx + 1, line))
-    //     //             .collect::<Vec<(usize, String)>>();
-    //     //         result.push(ConfigItem {
-    //     //             target,
-    //     //             domains: BTreeSet::from_iter(
-    //     //                 domains.into_iter().map(|(_idx, domain)| domain),
-    //     //             ),
-    //     //         });
-    //     //     },
-    //     //     Err(_error) =>
-    //     //     {
-    //     //         return Err(Error::RuntimeError(format!(
-    //     //             "failed to read config file {domain_list_file_path}" // "failed to read config file {domain_list_file_path}: {error}"
-    //     //         ))
-    //     //         .into());
-    //     //     },
-    //     // }
-    //     Ok(result)
-    // }
 }
