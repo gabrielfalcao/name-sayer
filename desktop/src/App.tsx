@@ -9,17 +9,20 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState<string | null>("");
-  const [name, setName] = useState<string | null>(null);
-  const [file, setFile] = useState<string | null>(null);
+  const [greetMsg, setGreetMsg] = useState("");
+  const [name, setName] = useState("");
+  const [file, setFile] = useState("");
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     setGreetMsg(await invoke("greet", { name }));
   }
   async function openFile() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    await invoke("open_file");
+    const selectedPath = await invoke<string | null>("open_file");
+    if (selectedPath) {
+      console.log("Selected file:", selectedPath);
+      setFile(selectedPath)
+    }
   }
 
   return (
@@ -30,7 +33,7 @@ function App() {
             <Modal.Header
               closeButton
               onHide={() => {
-                setGreetMsg(null);
+                setGreetMsg("");
               }}
             >
               <Modal.Title>Greet</Modal.Title>
@@ -63,7 +66,7 @@ function App() {
               </Button>
             </Modal.Body>
 
-            {greetMsg && (
+            {greetMsg?.length > 0 && (
               <Modal.Footer>
                 <Alert key="light" variant="light">
                   {greetMsg}

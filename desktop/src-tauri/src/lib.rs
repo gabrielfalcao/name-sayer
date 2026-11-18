@@ -2,14 +2,16 @@
 #[doc(hidden)] pub mod errors;
 #[doc(inline)] pub use errors::{Error, Result};
 use tauri::{AppHandle, Emitter, EventTarget, tray::TrayIconBuilder};
-
+use tauri_plugin_dialog::DialogExt;
 #[tauri::command]
-fn open_file(app: AppHandle, path: std::path::PathBuf) {
-    app.emit_filter("open-file", path, |target| match target {
-        EventTarget::WebviewWindow { label } => label == "main" || label == "file-viewer",
-        _ => false,
-    })
-    .unwrap();
+fn open_file(app: AppHandle) -> Result<Option<String>> {
+    let file_path =
+        app.dialog().file().add_filter("Text & Markdown", &["txt", "md"]).blocking_pick_file();
+
+    match file_path {
+        Some(path) => Ok(Some(path.to_string())),
+        None => Ok(None), // User canceled the dialog
+    }
 }
 #[tauri::command]
 fn download(app: AppHandle, url: String) {
