@@ -151,7 +151,7 @@ impl ConfigResolver {
                     log::warn!("matched name {name} to {requested_name}, blocking access via ip address {ipv4}");
                     return Ok(result);
                 } else {
-                    log::warn!("failed to match name {name} to {requested_name}, proceeding with resolution via upstream");
+                    log::error!("failed to match name {name} to {requested_name}, proceeding with resolution via upstream");
                 }
             }
             let total_found = result.len();

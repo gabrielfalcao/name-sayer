@@ -2,63 +2,51 @@ use chrono::{DateTime, Local};
 use fern::colors::{Color, ColoredLevelConfig, WithFgColor};
 use iocore::Path;
 use log::{Level, debug, error, info, log_enabled, trace, warn};
-use owo_colors::{OwoColorize, Style,Rgb};
+use owo_colors::{OwoColorize, Rgb, Style};
 
 pub fn color_for_level(level: log::Level) -> Color {
     use log::Level::*;
     match level {
-        off => (Color::TrueColor { r:30, g: 188, b: 115}),
+        off => (Color::TrueColor { r: 30, g: 188, b: 115 }),
         Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
         Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
         Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
-        Debug => (Color::TrueColor { r:84, g: 126, b: 100,}),
+        Debug => (Color::TrueColor { r: 84, g: 126, b: 100 }),
         Trace => (Color::TrueColor { r: 240, g: 79, b: 120 }),
     }
 }
 pub fn rgb_from_fern_color(color: Color) -> Rgb {
-    let Color::TrueColor {r,g,b} = color else {unreachable!()};
+    let Color::TrueColor { r, g, b } = color else { unreachable!() };
     Rgb(r, g, b)
-
 }
 pub fn style_from_fern_color(color: Color) -> Style {
-    let Color::TrueColor {r,g,b} = color else {unreachable!()};
-    Style::new().truecolor(r, g, b)
+    Style::new().color(rgb_from_fern_color(color))
+}
+pub fn timestamp() -> String {
+    let now = Local::now();
+    let timestamp = now.format("%Y/%m/%dT%H:%M:%S");
+    timestamp.to_string()
 }
 
-pub fn setup_logger(
-    level: log::Level,
-    output_file: Option<Path>,
-) -> Result<(), fern::InitError> {
-
-    let mut dsp = fern::Dispatch::new()
-        .format(move |out, message, record| {
-            let now = Local::now();
-            let timestamp = now.format("%Y/%m/%dT%H:%M:%S.%f");
+pub fn setup_logger(level_filter: log::LevelFilter) -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
             let color = color_for_level(record.level());
             let style = style_from_fern_color(color);
-            let level = level.as_str().to_string();
-            let file = record.file().unwrap_or("unknown");
-            let line = record.line().unwrap_or(0);
-            let target = record.target();
-            let message = message.style(style);
-
-            out.finish(format_args!("\x1b[0m[{level}] [{timestamp}] {target}:{file}:{line} => {message}", level=level.style(style)))
+            out.finish(format_args!(
+                "\x1b[0m[{}] [{}] [{}] {}",
+                timestamp(),
+                record.level().to_string().style(style),
+                record.target(),
+                message.to_string().style(style)
+            ))
         })
-        .level(level.to_level_filter())
-        .chain(std::io::stderr());
-    if let Some(output_file) = output_file {
-        dsp = dsp.chain(match fern::log_file(&output_file) {
-            Ok(output) => output,
-            Err(error) => {
-                log::error!("failed to setup log output to {output_file}: {error}");
-                std::process::exit(1);
-            }
-        })
-    }
-    dsp.apply()?;
+        .level(level_filter)
+        .chain(std::io::stderr())
+        .chain(fern::log_file("name-sayer.log")?)
+        .apply()?;
     Ok(())
 }
-
 // #2E222F  \x1b[1;38;2;46;34;47m      r:46, g: 34, b: 47,
 // #3E3546  \x1b[1;38;2;62;53;70m      r:62, g: 53, b: 70,
 // #625565  \x1b[1;38;2;98;85;101m     r:98, g: 85, b: 101,
