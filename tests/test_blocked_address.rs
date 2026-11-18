@@ -20,9 +20,16 @@ fn test_blocked_address_parts() -> Result<()> {
 #[test]
 fn test_blocked_address_with_prefix_wildcard() -> Result<()> {
     let hotjar = BlockedAddress::new("*.hotjar.com")?;
-    assert_eq!(hotjar.matches_addresss("hotjar.com")?, true);
     assert_eq!(hotjar.matches_addresss("www.hotjar.com")?, true);
+    assert_eq!(hotjar.matches_addresss(".hotjar.com")?, false);
+    assert_eq!(hotjar.matches_addresss("hotjar.com")?, false);
+    Ok(())
+}
+#[test]
+fn test_blocked_address_with() -> Result<()> {
+    let hotjar = BlockedAddress::new("hotjar.com")?;
+    assert_eq!(hotjar.matches_addresss("www.hotjar.com")?, false);
     assert_eq!(hotjar.matches_addresss(".hotjar.com")?, true);
-    assert_eq!(hotjar.matches_addresss("google.com")?, false);
+    assert_eq!(hotjar.matches_addresss("hotjar.com")?, true);
     Ok(())
 }
