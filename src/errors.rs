@@ -17,6 +17,10 @@ pub enum Error {
     Ipv4ParseError(#[from] AddrParseError),
     #[error("Protocol Error: {0}")]
     ProtoError(#[from] ProtoError),
+    #[error("Failed to match host pattern: {0}")]
+    HostPatternMatchError(#[from] rune_host_match::Error),
+    #[error("invalid value for blocked address: {0}")]
+    DomainParseError(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

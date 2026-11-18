@@ -7,6 +7,7 @@ homepage = "https://crates.io/crates/name-sayer"
 license = "MIT OR Apache-2.0"
 edition = "2024"
 autoexamples = false
+autotest = false
 autobenches = false
 default-run = "name-sayer"
 
@@ -36,6 +37,8 @@ path = "src/lib.rs"
 
 doctest = false
 bench = false
+doc = false
+test = false
 
 
 [[bin]]
@@ -79,6 +82,7 @@ pest_derive = "2.9.6"
 pin-project-lite = "0.2.17"
 regex = { version = "1.13.1", features = ["logging", "pattern", "perf-dfa-full", "unstable", "use_std"] }
 reqwest = { version = "0.13.5", features = ["json", "query", "multipart", "blocking", "cookies", "gzip", "form"] }
+rune-host-match = "0.1.1"
 serde = { version = "1.0.229", features = ["derive", "rc", "serde_derive", "unstable"] }
 serde_json = { version = "1.0.154", features = ["arbitrary_precision", "float_roundtrip", "indexmap", "preserve_order", "raw_value", "unbounded_depth"] }
 serde_yaml = "0.9.34"
