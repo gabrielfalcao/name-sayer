@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { invoke, Channel } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 import Container from "react-bootstrap/Container";
 import Alert from "react-bootstrap/Alert";
@@ -24,99 +25,99 @@ type SelectedFile = string;
     setGreetMsg(await invoke("greet", { name }));
   }
   async function openFile() {
-    const selectedPath = await invoke<string | null>("open_file", {onEvent});
-    if (selectedPath) {
-      console.log("Selected file:", selectedPath);
-      setFile(selectedPath)
-    }
+    await invoke<string | null>("open_file");
+
   }
+listen<DownloadStarted>('file-selected', (event) => {
+  setFile(event)
 
-  return (
-    <Container>
-      <Row>
-        <Col>
-          <Modal.Dialog>
-            <Modal.Header
-              closeButton
-              onHide={() => {
-                setGreetMsg("");
-              }}
-            >
-              <Modal.Title>Greet</Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              <input
-                id="greet-input"
-                onChange={(e) => setName(e.currentTarget.value)}
-                placeholder="Enter a name..."
-              />
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  greet();
+});
+    return (
+      <Container>
+        <Row>
+          <Col>
+            <Modal.Dialog>
+              <Modal.Header
+                closeButton
+                onHide={() => {
+                  setGreetMsg("");
                 }}
-                type="button"
               >
-                Greet
-              </Button>
-            </Modal.Body>
+                <Modal.Title>Greet</Modal.Title>
+              </Modal.Header>
 
-            {greetMsg?.length > 0 && (
-              <Modal.Footer>
-                <Alert key="light" variant="light">
-                  {greetMsg}
-                </Alert>
-              </Modal.Footer>
-            )}
-          </Modal.Dialog>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-        <br />
-        <hr />
-        <br />
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Modal.Dialog>
-            <Modal.Header
-              closeButton
-              onHide={() => {
-                setFile("");
-              }}
-            >
-              <Modal.Title>Open File</Modal.Title>
-            </Modal.Header>
+              <Modal.Body>
+                <input
+                  id="greet-input"
+                  onChange={(e) => setName(e.currentTarget.value)}
+                  placeholder="Enter a name..."
+                />
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    greet();
+                  }}
+                  type="button"
+                >
+                  Greet
+                </Button>
+              </Modal.Body>
 
-            <Modal.Body>
-              <Button
-                variant="danger"
-                onClick={(e) => {
-                  e.preventDefault();
-                  openFile();
+              {greetMsg?.length > 0 && (
+                <Modal.Footer>
+                  <Alert key="light" variant="light">
+                    {greetMsg}
+                  </Alert>
+                </Modal.Footer>
+              )}
+            </Modal.Dialog>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <br />
+            <hr />
+            <br />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Modal.Dialog>
+              <Modal.Header
+                closeButton
+                onHide={() => {
+                  setFile("");
                 }}
-                type="button"
               >
-                Open File
-              </Button>
+                <Modal.Title>Open File</Modal.Title>
+              </Modal.Header>
 
-            </Modal.Body>
+              <Modal.Body>
+                <Button
+                  variant="danger"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openFile();
+                  }}
+                  type="button"
+                >
+                  Open File
+                </Button>
 
-            {file?.length > 0 && (
-              <Modal.Footer>
-                <Alert key="light" variant="light">
-                  {file}
-                </Alert>
-              </Modal.Footer>
-            )}
-          </Modal.Dialog>
-        </Col>
-      </Row>
-    </Container>
-  );
-}
+              </Modal.Body>
+
+              {file?.length > 0 && (
+                <Modal.Footer>
+                  <Alert key="light" variant="light">
+                    {file}
+                  </Alert>
+                </Modal.Footer>
+              )}
+            </Modal.Dialog>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
 
 export default App;

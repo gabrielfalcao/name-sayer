@@ -8,21 +8,14 @@ use tauri::{
     EventTarget,
     ipc::Channel,
     tray::TrayIconBuilder,
-    webview::SelectedFile,
 };
 use tauri_plugin_dialog::DialogExt;
 
-#[derive(Clone, Serialize)]
-#[serde(rename_all = "camelCase", tag = "event")]
-struct SelectedFile {
-    filename: String,
-}
-
 #[tauri::command]
-fn open_file(app: AppHandle, on_event: Channel<SelectedFile>) {
+fn open_file(app: AppHandle) {
     app.dialog().file().pick_file(move |file_path| match file_path {
         Some(path) => {
-            on_event.send(SelectedFile { filename: path.to_string() }).unwrap();
+            app.emit("file-selected", &path.to_string()).unwrap();
             println!("{path}");
         }
         None => {
@@ -30,15 +23,6 @@ fn open_file(app: AppHandle, on_event: Channel<SelectedFile>) {
         }
     });
 }
-#[tauri::command]
-fn download(app: AppHandle, url: String) {
-    app.emit("download-started", &url).unwrap();
-    for progress in [1, 15, 50, 80, 100] {
-        app.emit("download-progress", progress).unwrap();
-    }
-    app.emit("download-finished", &url).unwrap();
-}
-
 use iocore::Path;
 use name_sayer::BlockedAddress;
 
@@ -73,7 +57,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, open_file, download, load_blocklist])
+        .invoke_handler(tauri::generate_handler![greet, open_file, load_blocklist])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
