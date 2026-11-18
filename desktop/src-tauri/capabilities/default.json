@@ -8,6 +8,7 @@
   "permissions": [
     "core:default",
     "core:tray:default",
+    "dialog:allow-open",
     "core:menu:default",
     "core:event:default",
     "opener:default",

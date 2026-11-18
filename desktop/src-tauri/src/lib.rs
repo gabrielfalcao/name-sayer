@@ -4,14 +4,16 @@
 use tauri::{AppHandle, Emitter, EventTarget, tray::TrayIconBuilder};
 use tauri_plugin_dialog::DialogExt;
 #[tauri::command]
-fn open_file(app: AppHandle) -> Result<Option<String>> {
-    let file_path =
-        app.dialog().file().add_filter("Text & Markdown", &["txt", "md"]).blocking_pick_file();
-
-    match file_path {
-        Some(path) => Ok(Some(path.to_string())),
-        None => Ok(None), // User canceled the dialog
-    }
+fn open_file(app: AppHandle) -> Result<()> {
+    app.dialog().file().pick_file(|file_path| match file_path {
+        Some(path) => {
+            println!("{path}");
+        }
+        None => {
+            eprintln!("no path");
+        }
+    });
+    Ok(())
 }
 #[tauri::command]
 fn download(app: AppHandle, url: String) {
