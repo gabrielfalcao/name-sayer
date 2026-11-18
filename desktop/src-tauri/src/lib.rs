@@ -1,7 +1,7 @@
 #![allow(unused)]
 #[doc(hidden)] pub mod errors;
 #[doc(inline)] pub use errors::{Error, Result};
-use tauri::{AppHandle, Emitter, EventTarget};
+use tauri::{AppHandle, Emitter, EventTarget, tray::TrayIconBuilder};
 
 #[tauri::command]
 fn open_file(app: AppHandle, path: std::path::PathBuf) {
@@ -46,6 +46,13 @@ fn load_blocklist(filename: &str) -> Vec<String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .build(app)?;
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet, open_file, download, load_blocklist])
         .run(tauri::generate_context!())
