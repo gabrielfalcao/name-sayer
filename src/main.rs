@@ -106,6 +106,7 @@ async fn main() -> std::result::Result<(), Report> {
             .map(|a| a.unwrap())
             .collect::<Vec<BlockedAddress>>();
     }
+    // app.server.upstream.register_record("gitea.langley".to_string(), "192.168.8.253".parse::<Ipv4Addr>()?)?;
     for name in names {
         app.server.upstream.register_record(name, app.cli.block_terminate_ipv4)?;
     }
