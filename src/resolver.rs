@@ -21,6 +21,7 @@ use crate::{Error, Result};
 #[derive(Debug, Clone)]
 pub struct ConfigResolver {
     blocking_ip: Ipv4Addr,
+    mapping: BTreeMap<Name, Ipv4Addr>,
     store: BTreeMap<BlockedAddress, Ipv4Addr>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
     upstream_servers: Vec<(String, Ipv4Addr)>,
@@ -84,6 +85,10 @@ impl ConfigResolver {
         }
         Ok(())
     }
+    pub fn map_fixed_record(&mut self, name: Name, addr: Ipv4Addr) -> Result<()> {
+        self.mapping.insert(name, addr);
+        Ok(())
+    }
     pub fn new(
         blocking_ip: Ipv4Addr,
         servers: ServerGroup,
@@ -96,7 +101,13 @@ impl ConfigResolver {
         )
         .build()?;
 
-        Ok(ConfigResolver { store: BTreeMap::new(), resolver, upstream_servers, blocking_ip })
+        Ok(ConfigResolver {
+            mapping: BTreeMap::new(),
+            store: BTreeMap::new(),
+            resolver,
+            upstream_servers,
+            blocking_ip,
+        })
     }
     pub fn load<'a>(blocking_ip: Ipv4Addr) -> Result<ConfigResolver> {
         let upstream_servers = ConfigResolver::load_default_upstream_servers()?;
@@ -112,7 +123,8 @@ impl ConfigResolver {
         )
         .build()?;
         let mut store = BTreeMap::new();
-        Ok(ConfigResolver { store, resolver, upstream_servers, blocking_ip })
+        let mut mapping = BTreeMap::new();
+        Ok(ConfigResolver { store, mapping, resolver, upstream_servers, blocking_ip })
     }
     pub async fn resolve<I: Display, T: Iterator<Item = I>>(
         &mut self,
@@ -148,10 +160,14 @@ impl ConfigResolver {
 
                 if name.matches_address(&requested_name)? {
                     result.push(ipv4.to_string());
-                    log::warn!("matched name {name} to {requested_name}, blocking access via ip address {ipv4}");
+                    log::warn!(
+                        "matched name {name} to {requested_name}, blocking access via ip address {ipv4}"
+                    );
                     return Ok(result);
                 } else {
-                    log::warn!("failed to match name {name} to {requested_name}, proceeding with resolution via upstream");
+                    log::warn!(
+                        "failed to match name {name} to {requested_name}, proceeding with resolution via upstream"
+                    );
                 }
             }
             let total_found = result.len();
@@ -167,7 +183,6 @@ impl ConfigResolver {
                     return Ok(result);
                 } else {
                     log::warn!("no blocking found for {requested_name} against {blocked}");
-
                 }
             }
 

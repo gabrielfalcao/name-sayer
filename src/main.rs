@@ -1,6 +1,6 @@
 #![allow(unused)]
 use std::net::Ipv4Addr;
-
+use hickory_proto::rr::Name;
 use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
 use iocore::{Path, env};
@@ -106,7 +106,10 @@ async fn main() -> std::result::Result<(), Report> {
             .map(|a| a.unwrap())
             .collect::<Vec<BlockedAddress>>();
     }
-    // app.server.upstream.register_record("gitea.langley".to_string(), "192.168.8.253".parse::<Ipv4Addr>()?)?;
+    app.server.upstream.map_fixed_record(
+        Name::parse("gitea.langley", None)?,
+        "192.168.8.253".parse::<Ipv4Addr>()?,
+    )?;
     for name in names {
         app.server.upstream.register_record(name, app.cli.block_terminate_ipv4)?;
     }
