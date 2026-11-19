@@ -151,7 +151,7 @@ impl ConfigResolver {
                     log::warn!("matched name {name} to {requested_name}, blocking access via ip address {ipv4}");
                     return Ok(result);
                 } else {
-                    log::error!("failed to match name {name} to {requested_name}, proceeding with resolution via upstream");
+                    log::warn!("failed to match name {name} to {requested_name}, proceeding with resolution via upstream");
                 }
             }
             let total_found = result.len();
@@ -159,8 +159,6 @@ impl ConfigResolver {
                 return Ok(result);
             }
             let mut is_blocked = false;
-            log::warn!("checking if {requested_name} is blocked");
-
             for blocked in self.store.keys() {
                 if blocked.matches_other(blocked.clone())? {
                     log::warn!("blocking {requested_name}, to {DEFAULT_BLOCKING_IP}");
@@ -168,7 +166,7 @@ impl ConfigResolver {
                     is_blocked = true;
                     return Ok(result);
                 } else {
-                    log::warn!("no blocking found for {requested_name}");
+                    log::warn!("no blocking found for {requested_name} against {blocked}");
 
                 }
             }
@@ -190,7 +188,7 @@ impl ConfigResolver {
                 })
                 .collect::<Vec<Ipv4Addr>>();
             if !is_blocked {
-                log::warn!(
+                log::info!(
                     "no match found locally for {requested_name}, upstream resolved to: {ips}",
                     ips = matched_ips
                         .iter()

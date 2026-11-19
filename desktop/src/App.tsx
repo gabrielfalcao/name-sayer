@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { invoke, Channel } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
+import { useState, useEffect } from "react";
+import { invoke, Channel } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 import Container from "react-bootstrap/Container";
 import Alert from "react-bootstrap/Alert";
@@ -12,13 +12,13 @@ import Modal from "react-bootstrap/Modal";
 
 type SelectedFile = string;
 
-  function App() {
-    const [greetMsg, setGreetMsg] = useState("");
+function App() {
+  const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
   const [file, setFile] = useState("");
   const onEvent = new Channel<SelectedFile>();
   onEvent.onmessage = (message) => {
-    setFile(message.event)
+    setFile(message.event);
   };
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -26,98 +26,97 @@ type SelectedFile = string;
   }
   async function openFile() {
     await invoke<string | null>("open_file");
-
   }
-listen<DownloadStarted>('file-selected', (event) => {
-  setFile(event)
+  useEffect(() => {
+  listen<string>("file-selected", (event) => {
+    setFile(event.payload);
+  });
+  })
+  return (
+    <Container>
+      <Row>
+        <Col>
+          <Modal.Dialog>
+            <Modal.Header
+              closeButton
+              onHide={() => {
+                setGreetMsg("");
+              }}
+            >
+              <Modal.Title>Greet</Modal.Title>
+            </Modal.Header>
 
-});
-    return (
-      <Container>
-        <Row>
-          <Col>
-            <Modal.Dialog>
-              <Modal.Header
-                closeButton
-                onHide={() => {
-                  setGreetMsg("");
+            <Modal.Body>
+              <input
+                id="greet-input"
+                onChange={(e) => setName(e.currentTarget.value)}
+                placeholder="Enter a name..."
+              />
+              <Button
+                onClick={(e) => {
+                  e.preventDefault();
+                  greet();
                 }}
+                type="button"
               >
-                <Modal.Title>Greet</Modal.Title>
-              </Modal.Header>
+                Greet
+              </Button>
+            </Modal.Body>
 
-              <Modal.Body>
-                <input
-                  id="greet-input"
-                  onChange={(e) => setName(e.currentTarget.value)}
-                  placeholder="Enter a name..."
-                />
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    greet();
-                  }}
-                  type="button"
-                >
-                  Greet
-                </Button>
-              </Modal.Body>
+            {greetMsg?.length > 0 && (
+              <Modal.Footer>
+                <Alert key="light" variant="light">
+                  {greetMsg}
+                </Alert>
+              </Modal.Footer>
+            )}
+          </Modal.Dialog>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <br />
+          <hr />
+          <br />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Modal.Dialog>
+            <Modal.Header
+              closeButton
+              onHide={() => {
+                setFile("");
+              }}
+            >
+              <Modal.Title>Open File</Modal.Title>
+            </Modal.Header>
 
-              {greetMsg?.length > 0 && (
-                <Modal.Footer>
-                  <Alert key="light" variant="light">
-                    {greetMsg}
-                  </Alert>
-                </Modal.Footer>
-              )}
-            </Modal.Dialog>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <br />
-            <hr />
-            <br />
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <Modal.Dialog>
-              <Modal.Header
-                closeButton
-                onHide={() => {
-                  setFile("");
+            <Modal.Body>
+              <Button
+                variant="danger"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openFile();
                 }}
+                type="button"
               >
-                <Modal.Title>Open File</Modal.Title>
-              </Modal.Header>
+                Open File
+              </Button>
+            </Modal.Body>
 
-              <Modal.Body>
-                <Button
-                  variant="danger"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openFile();
-                  }}
-                  type="button"
-                >
-                  Open File
-                </Button>
-
-              </Modal.Body>
-
-              {file?.length > 0 && (
-                <Modal.Footer>
-                  <Alert key="light" variant="light">
-                    {file}
-                  </Alert>
-                </Modal.Footer>
-              )}
-            </Modal.Dialog>
-          </Col>
-        </Row>
-      </Container>
-    );
-  }
+            {file?.length > 0 && (
+              <Modal.Footer>
+                <Alert key="light" variant="light">
+                  {file}
+                </Alert>
+              </Modal.Footer>
+            )}
+          </Modal.Dialog>
+        </Col>
+      </Row>
+    </Container>
+  );
+}
 
 export default App;

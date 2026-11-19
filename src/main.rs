@@ -15,7 +15,7 @@ pub struct Cli {
     #[arg(short = 'H', long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
-    #[arg(short, long, default_value = "debug")]
+    #[arg(short, long, default_value = "info")]
     log_level_max: log::LevelFilter,
 
     #[arg(short, long)]
@@ -107,7 +107,7 @@ async fn main() -> std::result::Result<(), Report> {
             .collect::<Vec<BlockedAddress>>();
     }
     for name in names {
-        app.server.upstream.add_upstream_server_ipv4(name, app.cli.block_terminate_ipv4)?;
+        app.server.upstream.register_record(name, app.cli.block_terminate_ipv4)?;
     }
     app.serve().await?;
     Ok(())

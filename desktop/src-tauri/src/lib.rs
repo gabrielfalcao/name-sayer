@@ -12,7 +12,7 @@ use tauri::{
 use tauri_plugin_dialog::DialogExt;
 
 #[tauri::command]
-async fn open_file(app: AppHandle) {
+fn open_file(app: AppHandle) {
     app.dialog().file().pick_file(move |file_path| match file_path {
         Some(path) => {
             app.emit("file-selected", &path.to_string()).unwrap();
@@ -27,11 +27,11 @@ use iocore::Path;
 use name_sayer::BlockedAddress;
 
 #[tauri::command]
-async fn greet(name: &str) -> String {
+fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 #[tauri::command]
-async fn load_blocklist(filename: &str) -> Vec<String> {
+fn load_blocklist(filename: &str) -> Vec<String> {
     let path = Path::new(filename);
     let mut names = Vec::<String>::new();
     let lines = path
