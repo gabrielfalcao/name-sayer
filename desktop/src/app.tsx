@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke, Channel } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-
+import FilterableList from './components/filterable-list'
 import Container from "react-bootstrap/Container";
 import Alert from "react-bootstrap/Alert";
 
@@ -63,6 +63,9 @@ function App() {
           </Modal.Dialog>
         </Col>
       </Row>
+      <Row><Col>
+        <FilterableList />
+      </Col></Row>
     </Container>
   );
 }
