@@ -42,7 +42,6 @@ impl BlockedAddress {
     pub fn host(&self) -> Result<HostPattern> {
         Ok(HostPattern::parse(self.as_str())?)
     }
-
     pub fn parts(&self) -> Result<Vec<(String, String)>> {
         let caps = REGEX.captures(self.as_str());
         match caps {
@@ -51,7 +50,9 @@ impl BlockedAddress {
                 for name in ["glob", "names", "name", "last_name"] {
                     match caps.name(name) {
                         Some(mtch) => {
-                            items.push((name.to_string(), mtch.as_str().to_string()));
+                            let value = mtch.as_str().to_string();
+                            let value = if value.is_empty() { "*".to_string() } else { value };
+                            items.push((name.to_string(), value));
                         }
                         None => {}
                     }
@@ -61,6 +62,18 @@ impl BlockedAddress {
             None => Err(Error::DomainParseError(self.to_string())),
         }
     }
+    pub fn split(&self) -> Vec<String> {
+        self.as_str()
+            .split(".")
+            .map(|p| p.trim_matches('*'))
+            .filter(|p| p.trim().len() > 0)
+            .map(String::from)
+            .collect::<Vec<String>>()
+    }
+    pub fn join(&self) -> String {
+        self.split().join(".")
+    }
+
     pub fn matches_address<T: Display>(&self, other: T) -> Result<bool> {
         let other = BlockedAddress::new(other)?;
         Ok(self.matches_other(other)?)
@@ -68,13 +81,23 @@ impl BlockedAddress {
     pub fn matches_other(&self, other: BlockedAddress) -> Result<bool> {
         let self_parts = self.parts()?;
         let other_parts = other.parts()?;
+        let self_join = self.join();
+        let other_join = other.join();
         if self.host()?.matches(other.as_str()) {
             Ok(true)
-        } else if self_parts == other_parts {
+        } else if dbg!(self_parts) == dbg!(other_parts) {
             Ok(true)
-        } else if self.name()?.eq_case(&other.name()?) {
+        } else if dbg!(self_join) == dbg!(other_join) {
             Ok(true)
-        } else if glob_match(self.as_str(), other.as_str()) {
+        } else if dbg!(self.name()?).eq_case(&dbg!(other.name())?) {
+            Ok(true)
+        } else if dbg!(self.as_str()).contains(dbg!(other.as_str())) {
+            Ok(true)
+        } else if dbg!(other.as_str()).contains(dbg!(self.as_str())) {
+            Ok(true)
+        } else if glob_match(dbg!(self.as_str()), dbg!(other.as_str())) {
+            Ok(true)
+        } else if glob_match(dbg!(other.as_str()), dbg!(self.as_str())) {
             Ok(true)
         } else {
             Ok(false)
@@ -90,7 +113,6 @@ impl Display for BlockedAddress {
 
 impl FromStr for BlockedAddress {
     type Err = Error;
-
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         Ok(BlockedAddress::new(s)?)
     }
@@ -101,6 +123,7 @@ impl From<String> for BlockedAddress {
         BlockedAddress(s)
     }
 }
+
 impl Into<Name> for BlockedAddress {
     fn into(self) -> Name {
         self.name().expect("proto name")
