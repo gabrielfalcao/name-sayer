@@ -22,7 +22,8 @@ use crate::{Error, Result};
 pub struct ConfigResolver {
     blocking_ip: Ipv4Addr,
     mapping: BTreeMap<Name, Ipv4Addr>,
-    store: BTreeMap<BlockedAddress, Ipv4Addr>,
+    store: BTreeMap<String, Ipv4Addr>,
+    blocked_addresses: Vec<BlockedAddress>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
     upstream_servers: Vec<(String, Ipv4Addr)>,
 }
@@ -76,12 +77,12 @@ impl ConfigResolver {
     /// addresses
     pub fn register_record(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
         let name = BlockedAddress::new(&name)?;
-        if let Some(x) = self.store.get_mut(&name) {
+        if let Some(x) = self.store.get_mut(name.as_str()) {
             if x.to_string() != addr.to_string() {
                 *x = addr;
             }
         } else {
-            self.store.insert(name, addr);
+            self.store.insert(name.to_string(), addr);
         }
         Ok(())
     }
@@ -93,6 +94,7 @@ impl ConfigResolver {
         blocking_ip: Ipv4Addr,
         servers: ServerGroup,
         upstream_servers: Vec<(String, Ipv4Addr)>,
+        blocked_addresses: Vec<BlockedAddress>,
         resolver: HickoryResolver<TokioRuntimeProvider>,
     ) -> Result<ConfigResolver> {
         let mut resolver = HickoryResolver::builder_with_config(
@@ -106,6 +108,7 @@ impl ConfigResolver {
             store: BTreeMap::new(),
             resolver,
             upstream_servers,
+            blocked_addresses,
             blocking_ip,
         })
     }
@@ -124,7 +127,8 @@ impl ConfigResolver {
         .build()?;
         let mut store = BTreeMap::new();
         let mut mapping = BTreeMap::new();
-        Ok(ConfigResolver { store, mapping, resolver, upstream_servers, blocking_ip })
+        let mut blocked_addresses = Vec::new();
+        Ok(ConfigResolver { store, mapping, blocked_addresses, resolver, upstream_servers, blocking_ip })
     }
     pub async fn resolve<I: Display, T: Iterator<Item = I>>(
         &mut self,
@@ -145,6 +149,10 @@ impl ConfigResolver {
         for requested_name in requested_names.clone() {
             // let name = Name::from_str(&requested_name)?;
             // let lower_name = LowerName::new(&name);
+            if requested_name.to_string().contains("hai8g.com") {
+                result.push(DEFAULT_BLOCKING_IP.to_string());
+                return Ok(result)
+            }
             log::info!(
                 "looking for {requested_name:#?} ",
                 requested_name = requested_name.to_string()
@@ -159,7 +167,7 @@ impl ConfigResolver {
                 );
 
                 if name.matches_address(&requested_name)? {
-                    result.push(ipv4.to_string());
+                    result.push(DEFAULT_BLOCKING_IP.to_string());
                     log::warn!(
                         "matched name {name} to {requested_name}, blocking access via ip address {ipv4}"
                     );
@@ -175,8 +183,8 @@ impl ConfigResolver {
                 return Ok(result);
             }
             let mut is_blocked = false;
-            for blocked in self.store.keys() {
-                if blocked.matches_other(blocked.clone())? {
+            for blocked in self.blocked_addresses.clone() {
+                if blocked.matches_other(requested_name.clone())? {
                     log::warn!("blocking {requested_name}, to {DEFAULT_BLOCKING_IP}");
                     result.push(DEFAULT_BLOCKING_IP.to_string());
                     is_blocked = true;
