@@ -4,7 +4,7 @@ authoritative DNS server with blocklist features
 
 ![docs/logo.png](docs/logo.png)
 
-<video width="1044" height="615" controls>
-  <source src="./demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+
+
+https://github.com/user-attachments/assets/f2f2bc86-6f4f-4a9b-ae5e-db66bd8c7bbe
+
