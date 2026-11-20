@@ -4,4 +4,4 @@ authoritative DNS server with blocklist features
 
 ![docs/logo.png](docs/logo.png)
 
-![](demo.mp4)
+[![Demo](./demo.jpg)](./demo.mp4)
