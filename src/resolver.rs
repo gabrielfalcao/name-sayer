@@ -156,7 +156,7 @@ impl ConfigResolver {
             .map(|name| name.unwrap())
             .collect::<Vec<BlockedAddress>>();
         let requests = requested_names.iter().map(|r|r.to_string()).collect::<Vec<String>>().join(", ");
-        log::debug!("request to resolve: {}", requests);
+        log::warn!("request to resolve: {}", requests);
         for requested_name in requested_names.clone() {
             // let name = Name::from_str(&requested_name)?;
             // let lower_name = LowerName::new(&name);

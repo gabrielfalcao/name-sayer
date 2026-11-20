@@ -9,7 +9,7 @@ pub fn color_for_level(level: log::Level) -> Color {
         log::Level::Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
         log::Level::Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
         log::Level::Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
-        log::Level::Debug => (Color::TrueColor { r:234, g: 173, b: 237, }),
+        log::Level::Debug => (Color::TrueColor { r: 234, g: 173, b: 237 }),
         log::Level::Trace => (Color::TrueColor { r: 240, g: 79, b: 120 }),
     }
 }
@@ -35,12 +35,12 @@ pub fn setup_logger(level_filter: log::LevelFilter) -> Result<(), fern::InitErro
                 "\x1b[0m[{}] [{}] [{}] {}",
                 timestamp(),
                 record.level().to_string().style(style),
-                record.target(),
+                record.target().to_string().style(style),
                 message.to_string().style(style)
             ))
         })
         .level_for("hickory_server::server", log::LevelFilter::Warn)
-        .level_for("name_sayer::resolver", log::LevelFilter::Debug)
+        .level_for("name_sayer::resolver", log::LevelFilter::Info)
         .level(level_filter)
         .chain(std::io::stderr())
         .chain(fern::log_file("name-sayer.log")?)
