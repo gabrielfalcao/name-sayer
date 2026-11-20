@@ -39,6 +39,8 @@ pub fn setup_logger(level_filter: log::LevelFilter) -> Result<(), fern::InitErro
                 message.to_string().style(style)
             ))
         })
+        .level_for("hickory_server::server", log::LevelFilter::Warn)
+        .level_for("name_sayer::resolver", log::LevelFilter::Info)
         .level(level_filter)
         .chain(std::io::stderr())
         .chain(fern::log_file("name-sayer.log")?)
