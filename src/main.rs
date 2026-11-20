@@ -111,7 +111,7 @@ async fn main() -> std::result::Result<(), Report> {
         "192.168.8.253".parse::<Ipv4Addr>()?,
     )?;
     for name in names {
-        app.server.upstream.register_record(name, app.cli.block_terminate_ipv4)?;
+        app.server.upstream.add_blocked_address(name)?;
     }
     app.serve().await?;
     Ok(())

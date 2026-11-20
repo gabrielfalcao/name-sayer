@@ -23,7 +23,7 @@ pub struct ConfigResolver {
     blocking_ip: Ipv4Addr,
     mapping: BTreeMap<Name, Ipv4Addr>,
     store: BTreeMap<String, Ipv4Addr>,
-    blocked_addresses: Vec<BlockedAddress>,
+    blocked_addresses: BTreeSet<BlockedAddress>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
     upstream_servers: Vec<(String, Ipv4Addr)>,
 }
@@ -71,10 +71,6 @@ impl ConfigResolver {
         self.upstream_servers.push((name, addr));
         Ok(())
     }
-    /// Adds a custom ipv4 addr to resolve `name`. This mechanism
-    /// allows the flexibility to specify specific domains on top of
-    /// the blocked ones and has the potential to replace blocked
-    /// addresses
     pub fn register_record(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
         let name = BlockedAddress::new(&name)?;
         if let Some(x) = self.store.get_mut(name.as_str()) {
@@ -86,6 +82,12 @@ impl ConfigResolver {
         }
         Ok(())
     }
+    pub fn add_blocked_address<T: Display>(&mut self, name: T) -> Result<()> {
+        let name = name.to_string();
+        let blocked = BlockedAddress::new(&name)?;
+        self.blocked_addresses.insert(blocked);
+        Ok(())
+    }
     pub fn map_fixed_record(&mut self, name: Name, addr: Ipv4Addr) -> Result<()> {
         self.mapping.insert(name, addr);
         Ok(())
@@ -94,7 +96,7 @@ impl ConfigResolver {
         blocking_ip: Ipv4Addr,
         servers: ServerGroup,
         upstream_servers: Vec<(String, Ipv4Addr)>,
-        blocked_addresses: Vec<BlockedAddress>,
+        blocked_addresses: BTreeSet<BlockedAddress>,
         resolver: HickoryResolver<TokioRuntimeProvider>,
     ) -> Result<ConfigResolver> {
         let mut resolver = HickoryResolver::builder_with_config(
@@ -127,8 +129,15 @@ impl ConfigResolver {
         .build()?;
         let mut store = BTreeMap::new();
         let mut mapping = BTreeMap::new();
-        let mut blocked_addresses = Vec::new();
-        Ok(ConfigResolver { store, mapping, blocked_addresses, resolver, upstream_servers, blocking_ip })
+        let mut blocked_addresses = BTreeSet::new();
+        Ok(ConfigResolver {
+            store,
+            mapping,
+            blocked_addresses,
+            resolver,
+            upstream_servers,
+            blocking_ip,
+        })
     }
     pub async fn resolve<I: Display, T: Iterator<Item = I>>(
         &mut self,
@@ -151,7 +160,7 @@ impl ConfigResolver {
             // let lower_name = LowerName::new(&name);
             if requested_name.to_string().contains("hai8g.com") {
                 result.push(DEFAULT_BLOCKING_IP.to_string());
-                return Ok(result)
+                return Ok(result);
             }
             log::info!(
                 "looking for {requested_name:#?} ",
