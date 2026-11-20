@@ -11,7 +11,7 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 #[doc(inline)] pub use client::{PrintProvider, query};
 
 #[doc(hidden)] pub mod server;
-#[doc(inline)] pub use server::DNSServer;
+#[doc(inline)] pub use server::{DEFAULT_BLOCKING_IP, DNSServer};
 
 #[doc(hidden)] pub mod resolver;
 #[doc(inline)] pub use resolver::ConfigResolver;
