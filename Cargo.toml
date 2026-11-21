@@ -55,7 +55,6 @@ bytes = { version = "1.12.1", features = ["serde"] }
 chrono = { version = "0.4.45", features = ["serde"] }
 clap = { version = "4.6.8", features = ["cargo", "derive", "env", "string", "unicode", "wrap_help"] }
 color-eyre = { version = "0.6.5", features = ["issue-url", "url"] }
-dirs = "7.0.0"
 fast-glob = "1.1.2"
 fern = { version = "0.7.1", features = ["colored", "date-based", "libc", "meta-logging-in-format", "reopen-03", "reopen-1", "reopen03", "reopen1", "syslog-3", "syslog-4", "syslog-6", "syslog-7", "syslog3", "syslog4", "syslog6", "syslog7"] }
 hickory-net = "0.26.3"
