@@ -1,8 +1,9 @@
 #![allow(unused)]
 use std::net::Ipv4Addr;
-use hickory_proto::rr::Name;
+
 use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
+use hickory_proto::rr::Name;
 use iocore::{Path, env};
 use name_sayer::{BlockedAddress, DNSServer, setup_logger};
 use tokio::net::UdpSocket;
@@ -21,7 +22,7 @@ pub struct Cli {
     #[arg(short, long)]
     output_log_file: Option<Path>,
 
-    #[arg(short, long, default_value = "blocklist.txt")]
+    #[arg(short, long)]
     blocklist_files: Vec<Path>,
 
     #[arg(long,
@@ -90,12 +91,14 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), Report> {
-    let path = Path::from(dirs::config_dir().unwrap()).join("config.yaml");
-
     let mut app = Application::new();
     app.server.blocking_ip = app.cli.block_terminate_ipv4;
     setup_logger(app.cli.log_level_max)?;
+    if app.cli.blocklist_files.is_empty() {
+        log::warn!("no blocklist provided, to block domains make sure to use the -b option");
+    }
     let mut names = Vec::<String>::new();
+
     for file in app.cli.blocklist_files.iter() {
         let lines = file
             .read_lines()?
