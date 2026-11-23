@@ -7,5 +7,7 @@ authoritative DNS server with blocklist features
 
 
 
-https://github.com/user-attachments/assets/57b84de3-2548-48a4-a6a0-1ea1646f0480
+
+
+https://github.com/user-attachments/assets/bcb44897-e799-4b02-937a-4aefba2b6a67
 
