@@ -7,6 +7,17 @@ use hickory_proto::rr::Name;
 use iocore::{Path, env};
 use name_sayer::{BlockedAddress, DNSServer, setup_logger};
 use tokio::net::UdpSocket;
+
+// fn parse_item(ips: &str) -> Result<Vec<Ipv4Addr>, String> {
+//     Ok(ips
+//         .split(",")
+//         .map(|ip| ip.trim())
+//         .map(|c| c.to_string())
+//         .map(|ip| ip.parse::<Ipv4Addr>())
+//         .filter(|c| c.is_ok())
+//         .map(|c| c.unwrap())
+//         .collect::<Vec<Ipv4Addr>>())
+// }
 #[derive(Parser, Debug, Clone)]
 #[command(author, version)]
 pub struct Cli {
@@ -16,7 +27,10 @@ pub struct Cli {
     #[arg(short = 'H', long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
-    #[arg(short = 'u', long, default_value = "")]
+    #[arg(long)]
+    dry_run: bool,
+
+    #[arg(short = 'u', long)]
     upstream_servers: Vec<Ipv4Addr>,
 
     #[arg(short, long, default_value = "info")]
@@ -53,6 +67,15 @@ pub struct Cli {
     // #[arg(short = 'H', long)]
     // help: bool,
 }
+impl Cli {
+    pub fn upstream_servers(&self) -> Vec<Ipv4Addr> {
+        if self.upstream_servers.is_empty() {
+            UPSTREAM_SERVERS.clone()
+        } else {
+            self.upstream_servers.clone()
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Application {
@@ -68,7 +91,7 @@ impl Default for Application {
 
 impl Application {
     pub fn new() -> Application {
-        Application { cli: Cli::parse(), server: DNSServer::default() }
+        Application { cli: Cli::parse(), server: DNSServer::load(self.upstream_servers) }
     }
 
     pub async fn serve(&mut self) -> Result<()> {
@@ -76,12 +99,16 @@ impl Application {
         let host = self.cli.host;
 
         let addr = format!("{host}:{port}");
-        display_banner(format!("dns server listening on {addr}"));
+        if self.cli.dry_run {
+            display_banner(format!("dns server would listen on {addr}"));
+        } else {
+            display_banner(format!("dns server listening on {addr}"));
 
-        let socket = UdpSocket::bind(&addr).await?;
-        let server = self.server.clone();
+            let socket = UdpSocket::bind(&addr).await?;
+            let server = self.server.clone();
 
-        server.start(socket).await?;
+            server.start(socket).await?;
+        }
         Ok(())
     }
 }

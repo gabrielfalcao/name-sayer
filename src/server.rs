@@ -18,8 +18,7 @@ use tokio::net::UdpSocket;
 
 // use hickory_proto::rr::Name;
 // use hickory_server::authority::MessageResponseBuilder;
-use crate::ConfigResolver;
-
+use crate::{ConfigResolver, UPSTREAM_SERVERS};
 #[derive(Clone, Debug)]
 pub struct DNSServer {
     pub upstream: ConfigResolver,
@@ -32,7 +31,15 @@ impl Default for DNSServer {
         DNSServer { upstream: Default::default(), blocking_ip: DEFAULT_BLOCKING_IP }
     }
 }
+
 impl DNSServer {
+    pub fn load(
+        upstream: ConfigResolver,
+        blocking_ip: Ipv4Addr,
+        upstream_servers: Vec<Ipv4Addr>,
+    ) -> Result<DNSServer> {
+        DNSServer { upstream: ConfigResolver::load(upstream_servers)?, blocking_ip }
+    }
     pub async fn start(self, socket: UdpSocket) -> Result<(), Report> {
         let mut server = Server::new(self);
         let socket_addr = socket.local_addr()?;
@@ -67,7 +74,6 @@ impl RequestHandler for DNSServer {
         let mut metadata = Metadata::response_from_request(info.metadata);
         metadata.authoritative = true;
         let _header = Header { metadata, counts: HeaderCounts::default() };
-
         let name = request.queries.queries()[0].name();
         let names_to_resolve = request
             .queries
@@ -75,7 +81,6 @@ impl RequestHandler for DNSServer {
             .iter()
             .map(|query| query.name().to_string())
             .collect::<Vec<String>>();
-
         let mut upstream = self.upstream.clone();
         match upstream.resolve(names_to_resolve.into_iter()).await {
             Ok(ipv4_addrs) => {
@@ -97,7 +102,6 @@ impl RequestHandler for DNSServer {
                     // .map(|ip| ip.unwrap())
                     .map(|rdata| Record::from_rdata(name.into(), 60, rdata))
                     .collect();
-
                 let response = builder.build(metadata, records.iter(), &[], &[], &[]);
                 response_handler.send_response(response).await.unwrap()
             }

@@ -30,14 +30,12 @@ pub struct ConfigResolver {
     store: BTreeMap<String, Ipv4Addr>,
     blocked_addresses: BTreeSet<BlockedAddress>,
     resolver: HickoryResolver<TokioRuntimeProvider>,
-    upstream_servers: Vec<(String, Ipv4Addr)>,
+    upstream_servers: Vec<Ipv4Addr>,
 }
 impl Default for ConfigResolver {
     fn default() -> ConfigResolver {
-        ConfigResolver::load(
-            DEFAULT_BLOCKING_IP,
-            UPSTREAM_SERVERS.clone(),
-        ).expect("failed to load default ConfigResolver")
+        ConfigResolver::load(DEFAULT_BLOCKING_IP, UPSTREAM_SERVERS.clone())
+            .expect("failed to load default ConfigResolver")
     }
 }
 pub fn normalize_domain_name<T: Display>(name: T) -> Result<BlockedAddress> {
@@ -54,17 +52,17 @@ impl ConfigResolver {
         }
         Ok(result.clone())
     }
-    fn load_upstream_servers(servers: Vec<(String, Ipv4Addr)>) -> Result<Vec<(String, Ipv4Addr)>> {
-        let mut result = Vec::<(String, Ipv4Addr)>::new();
-        for (name, ipv4) in servers.clone().into_iter() {
-            log::trace!("adding upstream server from {name}: {ipv4}");
-            result.push((name.to_string(), ipv4));
+    fn load_upstream_servers(servers: Vec<Ipv4Addr>) -> Result<Vec<(String, Ipv4Addr)>> {
+        let mut result = Vec::<Ipv4Addr>::new();
+        for ipv4 in servers.clone().into_iter() {
+            log::trace!("adding upstream server {ipv4}");
+            result.push(ipv4);
         }
         Ok(result.clone())
     }
 
     pub fn add_upstream_server_ipv4(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
-        self.upstream_servers.push((name, addr));
+        self.upstream_servers.push(addr);
         Ok(())
     }
     pub fn register_record(&mut self, name: String, addr: Ipv4Addr) -> Result<()> {
@@ -105,14 +103,14 @@ impl ConfigResolver {
             mapping: BTreeMap::new(),
             store: BTreeMap::new(),
             resolver,
-            upstream_servers,
             blocked_addresses,
+            upstream_servers: upstream_servers_to_ipv4_addr_vec(upstream_servers),
             blocking_ip,
         })
     }
     pub fn load<'a>(
         blocking_ip: Ipv4Addr,
-        upstream_servers: Vec<(String, Ipv4Addr)>,
+        upstream_servers: Vec<Ipv4Addr>,
     ) -> Result<ConfigResolver> {
         // let upstream_servers = upstream_servers_to_ipv4_addr_vec(upstream_servers);
         let upstream_servers = if upstream_servers.is_empty() {
@@ -139,7 +137,7 @@ impl ConfigResolver {
             mapping,
             blocked_addresses,
             resolver,
-            upstream_servers,
+            upstream_servers: upstream_servers_to_ipv4_addr_vec(upstream_servers),
             blocking_ip,
         })
     }

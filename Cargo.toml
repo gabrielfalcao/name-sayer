@@ -43,7 +43,7 @@ test = false
 
 [[bin]]
 name = "name-sayer"
-path = "src/main.rs"
+path = "src/bin/name-sayer.rs"
 doctest = false
 bench = false
 doc = false
