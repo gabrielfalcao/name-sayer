@@ -21,4 +21,10 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 
 #[doc(hidden)] pub mod upstream;
 #[doc(inline)]
-pub use upstream::{ALL_UPSTREAM_SERVERS, UPSTREAM_SERVERS, upstream_servers_to_ipv4_addr_vec};
+pub use upstream::{
+    ALL_UPSTREAM_SERVERS,
+    UPSTREAM_SERVERS,
+    UpstreamServer,
+    upstream_servers_to_ipv4_addr_vec,
+    upstream_servers_to_struct,
+};

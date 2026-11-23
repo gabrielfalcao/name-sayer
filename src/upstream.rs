@@ -1,4 +1,36 @@
 use std::{net::Ipv4Addr, sync::LazyLock};
+use tabled::{
+    Tabled, Table, assert::assert_table,
+    settings::{Style, Alignment, object::Columns},
+};
+
+#[derive(Clone, Debug, Tabled, PartialEq, Eq, PartialOrd, Ord)]
+pub struct UpstreamServer {
+    name: String,
+    ip: Ipv4Addr,
+}
+impl Into<Ipv4Addr> for UpstreamServer {
+    fn into(self) -> Ipv4Addr {
+        self.ip
+    }
+}
+impl Into<String> for UpstreamServer {
+    fn into(self) -> String {
+        self.name.clone()
+    }
+}
+
+pub fn upstream_servers_to_struct(servers: Vec<(String, Ipv4Addr)>) -> Vec<UpstreamServer> {
+    servers.clone().into_iter().map(|(name, ip)|UpstreamServer {
+        name, ip
+    }).collect::<Vec<UpstreamServer>>()
+
+}
+pub fn upstream_servers_to_ipv4_addr_vec(servers: Vec<(String, Ipv4Addr)>) -> Vec<Ipv4Addr> {
+    servers.clone().into_iter().map(|(name, ip)|ip).collect::<Vec<Ipv4Addr>>()
+}
+
+
 pub static UPSTREAM_SERVERS: LazyLock<Vec<(String, Ipv4Addr)>> = LazyLock::new(|| {
     vec![
         ("quad9_security".to_string(), Ipv4Addr::new(9, 9, 9, 9)),
@@ -32,7 +64,3 @@ pub static ALL_UPSTREAM_SERVERS: LazyLock<Vec<(String, Ipv4Addr)>> = LazyLock::n
         ("opendns".to_string(), Ipv4Addr::new(208, 67, 222, 220)),
     ]
 });
-
-pub fn upstream_servers_to_ipv4_addr_vec(servers: Vec<(String, Ipv4Addr)>) -> Vec<Ipv4Addr> {
-    servers.clone().into_iter().map(|(name, ip)|ip).collect::<Vec<Ipv4Addr>>()
-}
