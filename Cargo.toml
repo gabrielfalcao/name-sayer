@@ -49,6 +49,21 @@ bench = false
 doc = false
 test = false
 
+[[bin]]
+name = "dns-client"
+path = "src/bin/dns-client.rs"
+doctest = false
+bench = false
+doc = false
+test = false
+[[bin]]
+name = "upstream-servers"
+path = "src/bin/upstream-servers.rs"
+doctest = false
+bench = false
+doc = false
+test = false
+
 [dependencies]
 async-trait = "0.1.92"
 bytes = { version = "1.12.1", features = ["serde"] }
