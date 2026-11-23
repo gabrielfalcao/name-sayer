@@ -6,4 +6,6 @@ authoritative DNS server with blocklist features
 
 
 
-https://github.com/user-attachments/assets/f2f2bc86-6f4f-4a9b-ae5e-db66bd8c7bbe
+
+https://github.com/user-attachments/assets/57b84de3-2548-48a4-a6a0-1ea1646f0480
+
