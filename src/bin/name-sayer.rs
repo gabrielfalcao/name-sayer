@@ -7,11 +7,11 @@ use hickory_proto::rr::Name;
 use iocore::{Path, env};
 use name_sayer::{
     BlockedAddress,
+    ConfigResolver,
     DNSServer,
     UPSTREAM_SERVERS,
     setup_logger,
     upstream_servers_to_ipv4_addr_vec,
-    ConfigResolver,
 };
 use tokio::net::UdpSocket;
 
@@ -100,7 +100,7 @@ impl Application {
     pub fn new() -> Result<Application> {
         let cli = Cli::parse();
         let upstream = ConfigResolver::load(cli.block_terminate_ipv4, cli.upstream_servers())?;
-        let server =  DNSServer::load(upstream, cli.block_terminate_ipv4, cli.upstream_servers())?;
+        let server = DNSServer::load(upstream, cli.block_terminate_ipv4, cli.upstream_servers())?;
         Ok(Application { cli, server })
     }
 
@@ -109,10 +109,12 @@ impl Application {
         let host = self.cli.host;
 
         let addr = format!("{host}:{port}");
+        let pool_blue =  "\x1b[1;38;2;48;225;185m";
         if self.cli.dry_run {
-            display_banner(format!("dns server would listen on {addr}"));
+            display_banner(format!("dns server would listen on {pool_blue}{addr}"));
         } else {
-            display_banner(format!("dns server listening on {addr}"));
+
+            display_banner(format!("dns server listening on {pool_blue}{addr}"));
 
             let socket = UdpSocket::bind(&addr).await?;
             let server = self.server.clone();
@@ -124,7 +126,17 @@ impl Application {
 }
 
 pub fn display_banner<T: std::fmt::Display>(text: T) {
-    let beg = format!("\x1b[2J\x1b[3J\x1b[H\x1b[1;38;2;126;237;86m");
+    let logo = format!(
+        r".__   __.      ___      .___  ___.  _______     _______.     ___   ____    ____  _______ .______
+|  \ |  |     /   \     |   \/   | |   ____|   /       |    /   \  \   \  /   / |   ____||   _  \
+|   \|  |    /  ^  \    |  \  /  | |  |__     |   (----`   /  ^  \  \   \/   /  |  |__   |  |_)  |
+|  . `  |   /  /_\  \   |  |\/|  | |   __|     \   \      /  /_\  \  \_    _/   |   __|  |      /
+|  |\   |  /  _____  \  |  |  |  | |  |____.----)   |    /  _____  \   |  |     |  |____ |  |\  \----.
+|__| \__| /__/     \__\ |__|  |__| |_______|_______/    /__/     \__\  |__|     |_______|| _| `._____|"
+    );
+    let pink = "\x1b[1;38;2;240;79;120m";
+    let blue = "\x1b[1;38;2;145;219;105m";
+    let beg = format!("\x1b[2J\x1b[3J\x1b[H{pink}{logo}\n{blue}\n");
     let end = format!("\x1b[1;38;2;255;214;53m");
     eprintln!("{beg}{text}{end}");
 }

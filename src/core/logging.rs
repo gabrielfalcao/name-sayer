@@ -6,8 +6,8 @@ use owo_colors::{OwoColorize, Rgb, Style};
 
 pub fn color_for_level(level: log::Level) -> Color {
     match level {
-        log::Level::Info => (Color::TrueColor { r: 77, g: 155, b: 230 }),
-        log::Level::Warn => (Color::TrueColor { r: 247, g: 150, b: 23 }),
+        log::Level::Info => (Color::TrueColor { r: 14, g: 175, b: 155 }),
+        log::Level::Warn => (Color::TrueColor { r: 249, g: 194, b: 43 }),
         log::Level::Error => (Color::TrueColor { r: 232, g: 59, b: 59 }),
         log::Level::Debug => (Color::TrueColor { r: 234, g: 173, b: 237 }),
         log::Level::Trace => (Color::TrueColor { r: 240, g: 79, b: 120 }),
