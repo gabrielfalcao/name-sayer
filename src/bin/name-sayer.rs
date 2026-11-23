@@ -143,7 +143,7 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
     let pink = "\x1b[1;38;2;240;79;120m";
     let blue = "\x1b[1;38;2;145;219;105m";
     let light_blue = "\x1b[1;38;2;143;211;255m";
-    let beg = format!("\x1b[2J\x1b[3J\x1b[H{pink}{name}\n{blue}{sayer}{light_blue}\n");
+    let beg = format!("\x1b[2J\x1b[3J\x1b[H{pink}{name} {blue}{sayer}{light_blue}\n");
     let end = format!("\x1b[1;38;2;255;214;53m");
     eprintln!("{beg}{text}{end}");
 }
