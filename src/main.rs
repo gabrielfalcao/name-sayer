@@ -16,6 +16,10 @@ pub struct Cli {
     #[arg(short = 'H', long, default_value = "0.0.0.0")]
     host: Ipv4Addr,
 
+    #[arg(short = 'H', long, default_value = "")]
+    upstream_servers: Vec<Ipv4Addr>,
+
+
     #[arg(short, long, default_value = "info")]
     log_level_max: log::LevelFilter,
 

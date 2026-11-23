@@ -14,7 +14,12 @@ use hickory_server::net::runtime::TokioRuntimeProvider;
 use iocore::{Path, env};
 use regex::Regex;
 
-use crate::{BlockedAddress, server::DEFAULT_BLOCKING_IP};
+use crate::{
+    BlockedAddress,
+    UPSTREAM_SERVERS,
+    server::DEFAULT_BLOCKING_IP,
+    upstream_servers_to_ipv4_addr_vec,
+};
 // use hickory_proto::rr::LowerName;
 // use debug_et_diagnostics::dbg;
 use crate::{Error, Result};
@@ -29,7 +34,10 @@ pub struct ConfigResolver {
 }
 impl Default for ConfigResolver {
     fn default() -> ConfigResolver {
-        ConfigResolver::load(Ipv4Addr::new(23, 50, 77, 69)).unwrap()
+        ConfigResolver::load(
+            DEFAULT_BLOCKING_IP,
+            UPSTREAM_SERVERS.clone(),
+        ).expect("failed to load default ConfigResolver")
     }
 }
 pub fn normalize_domain_name<T: Display>(name: T) -> Result<BlockedAddress> {
@@ -38,30 +46,18 @@ pub fn normalize_domain_name<T: Display>(name: T) -> Result<BlockedAddress> {
 impl ConfigResolver {
     fn load_default_upstream_servers() -> Result<Vec<(String, Ipv4Addr)>> {
         let mut result = Vec::<(String, Ipv4Addr)>::new();
-        let upstream_servers = [
-            ("quad9_security", Ipv4Addr::new(9, 9, 9, 9)),
-            ("cloudflare", Ipv4Addr::new(1, 0, 0, 1)),
-            ("cloudflare", Ipv4Addr::new(1, 1, 1, 1)),
-            ("google", Ipv4Addr::new(8, 8, 4, 4)),
-            ("google", Ipv4Addr::new(8, 8, 8, 8)),
-            // // ("adguard", Ipv4Addr::new(94, 140, 14, 14)),
-            // // ("adguard", Ipv4Addr::new(94, 140, 15, 15)),
-            // // ("comodo", Ipv4Addr::new(156, 154, 70, 22)),
-            // // ("comodo", Ipv4Addr::new(156, 154, 71, 22)),
-            // // ("comodo_secure", Ipv4Addr::new(8, 20, 247, 20)),
-            // // ("comodo_secure", Ipv4Addr::new(8, 26, 56, 26)),
-            // // ("dnswatch", Ipv4Addr::new(84, 200, 69, 80)),
-            // // ("dnswatch", Ipv4Addr::new(84, 200, 70, 40)),
-            // // ("norton_connect_safe", Ipv4Addr::new(199, 85, 126, 10)),
-            // // ("norton_connect_safe", Ipv4Addr::new(199, 85, 127, 10)),
-            // ("opendns", Ipv4Addr::new(208, 67, 220, 220)),
-            // ("opendns", Ipv4Addr::new(208, 67, 222, 222)),
-            // ("opendns", Ipv4Addr::new(208, 67, 220, 222)),
-            // ("opendns", Ipv4Addr::new(208, 67, 222, 220)),
-        ];
+        let upstream_servers = UPSTREAM_SERVERS.clone();
         for (name, ipv4) in upstream_servers.into_iter() {
             log::trace!("adding upstream server from {name}: {ipv4}");
 
+            result.push((name.to_string(), ipv4));
+        }
+        Ok(result.clone())
+    }
+    fn load_upstream_servers(servers: Vec<(String, Ipv4Addr)>) -> Result<Vec<(String, Ipv4Addr)>> {
+        let mut result = Vec::<(String, Ipv4Addr)>::new();
+        for (name, ipv4) in servers.clone().into_iter() {
+            log::trace!("adding upstream server from {name}: {ipv4}");
             result.push((name.to_string(), ipv4));
         }
         Ok(result.clone())
@@ -114,8 +110,16 @@ impl ConfigResolver {
             blocking_ip,
         })
     }
-    pub fn load<'a>(blocking_ip: Ipv4Addr) -> Result<ConfigResolver> {
-        let upstream_servers = ConfigResolver::load_default_upstream_servers()?;
+    pub fn load<'a>(
+        blocking_ip: Ipv4Addr,
+        upstream_servers: Vec<(String, Ipv4Addr)>,
+    ) -> Result<ConfigResolver> {
+        // let upstream_servers = upstream_servers_to_ipv4_addr_vec(upstream_servers);
+        let upstream_servers = if upstream_servers.is_empty() {
+            ConfigResolver::load_default_upstream_servers()?
+        } else {
+            ConfigResolver::load_upstream_servers(upstream_servers)?
+        };
         let ips = upstream_servers
             .clone()
             .into_iter()
@@ -155,7 +159,8 @@ impl ConfigResolver {
             .filter(|name| name.is_some())
             .map(|name| name.unwrap())
             .collect::<Vec<BlockedAddress>>();
-        let requests = requested_names.iter().map(|r|r.to_string()).collect::<Vec<String>>().join(", ");
+        let requests =
+            requested_names.iter().map(|r| r.to_string()).collect::<Vec<String>>().join(", ");
         log::warn!("request to resolve: {}", requests);
         for requested_name in requested_names.clone() {
             // let name = Name::from_str(&requested_name)?;

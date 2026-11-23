@@ -18,3 +18,7 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 
 #[doc(hidden)] pub mod models;
 #[doc(inline)] pub use models::{BlockedAddress, validate_blocked_address};
+
+#[doc(hidden)] pub mod upstream;
+#[doc(inline)]
+pub use upstream::{ALL_UPSTREAM_SERVERS, UPSTREAM_SERVERS, upstream_servers_to_ipv4_addr_vec};
