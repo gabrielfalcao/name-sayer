@@ -38,7 +38,7 @@ impl DNSServer {
         blocking_ip: Ipv4Addr,
         upstream_servers: Vec<Ipv4Addr>,
     ) -> Result<DNSServer> {
-        DNSServer { upstream: ConfigResolver::load(upstream_servers)?, blocking_ip }
+        Ok(DNSServer { upstream: ConfigResolver::load(blocking_ip, upstream_servers)?, blocking_ip })
     }
     pub async fn start(self, socket: UdpSocket) -> Result<(), Report> {
         let mut server = Server::new(self);

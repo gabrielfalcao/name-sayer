@@ -5,7 +5,14 @@ use clap::{ArgAction, Parser};
 use color_eyre::eyre::{Report, Result};
 use hickory_proto::rr::Name;
 use iocore::{Path, env};
-use name_sayer::{BlockedAddress, DNSServer, setup_logger};
+use name_sayer::{
+    BlockedAddress,
+    DNSServer,
+    UPSTREAM_SERVERS,
+    setup_logger,
+    upstream_servers_to_ipv4_addr_vec,
+    ConfigResolver,
+};
 use tokio::net::UdpSocket;
 
 // fn parse_item(ips: &str) -> Result<Vec<Ipv4Addr>, String> {
@@ -70,7 +77,7 @@ pub struct Cli {
 impl Cli {
     pub fn upstream_servers(&self) -> Vec<Ipv4Addr> {
         if self.upstream_servers.is_empty() {
-            UPSTREAM_SERVERS.clone()
+            upstream_servers_to_ipv4_addr_vec(UPSTREAM_SERVERS.clone())
         } else {
             self.upstream_servers.clone()
         }
@@ -85,13 +92,16 @@ pub struct Application {
 
 impl Default for Application {
     fn default() -> Self {
-        Application::new()
+        Application::new().unwrap()
     }
 }
 
 impl Application {
-    pub fn new() -> Application {
-        Application { cli: Cli::parse(), server: DNSServer::load(self.upstream_servers) }
+    pub fn new() -> Result<Application> {
+        let cli = Cli::parse();
+        let upstream = ConfigResolver::load(cli.block_terminate_ipv4, cli.upstream_servers())?;
+        let server =  DNSServer::load(upstream, cli.block_terminate_ipv4, cli.upstream_servers())?;
+        Ok(Application { cli, server })
     }
 
     pub async fn serve(&mut self) -> Result<()> {
@@ -121,7 +131,7 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
 
 #[tokio::main]
 async fn main() -> std::result::Result<(), Report> {
-    let mut app = Application::new();
+    let mut app = Application::new()?;
     app.server.blocking_ip = app.cli.block_terminate_ipv4;
     setup_logger(app.cli.log_level_max)?;
     if app.cli.blocklist_files.is_empty() {

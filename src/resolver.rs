@@ -34,25 +34,28 @@ pub struct ConfigResolver {
 }
 impl Default for ConfigResolver {
     fn default() -> ConfigResolver {
-        ConfigResolver::load(DEFAULT_BLOCKING_IP, UPSTREAM_SERVERS.clone())
-            .expect("failed to load default ConfigResolver")
+        ConfigResolver::load(
+            DEFAULT_BLOCKING_IP,
+            upstream_servers_to_ipv4_addr_vec(UPSTREAM_SERVERS.clone()),
+        )
+        .expect("failed to load default ConfigResolver")
     }
 }
 pub fn normalize_domain_name<T: Display>(name: T) -> Result<BlockedAddress> {
     Ok(BlockedAddress::new(&name.to_string())?)
 }
 impl ConfigResolver {
-    fn load_default_upstream_servers() -> Result<Vec<(String, Ipv4Addr)>> {
-        let mut result = Vec::<(String, Ipv4Addr)>::new();
+    fn load_default_upstream_servers() -> Result<Vec<Ipv4Addr>> {
+        let mut result = Vec::<Ipv4Addr>::new();
         let upstream_servers = UPSTREAM_SERVERS.clone();
         for (name, ipv4) in upstream_servers.into_iter() {
             log::trace!("adding upstream server from {name}: {ipv4}");
 
-            result.push((name.to_string(), ipv4));
+            result.push(ipv4);
         }
         Ok(result.clone())
     }
-    fn load_upstream_servers(servers: Vec<Ipv4Addr>) -> Result<Vec<(String, Ipv4Addr)>> {
+    fn load_upstream_servers(servers: Vec<Ipv4Addr>) -> Result<Vec<Ipv4Addr>> {
         let mut result = Vec::<Ipv4Addr>::new();
         for ipv4 in servers.clone().into_iter() {
             log::trace!("adding upstream server {ipv4}");
@@ -121,7 +124,7 @@ impl ConfigResolver {
         let ips = upstream_servers
             .clone()
             .into_iter()
-            .map(|(_name, addr)| IpAddr::V4(addr))
+            .map(|addr| IpAddr::V4(addr))
             .collect::<Vec<IpAddr>>();
         let servers = ServerGroup { ips: &ips, server_name: "loopback", path: "/__query_path__" };
         let resolver = HickoryResolver::builder_with_config(
@@ -137,7 +140,7 @@ impl ConfigResolver {
             mapping,
             blocked_addresses,
             resolver,
-            upstream_servers: upstream_servers_to_ipv4_addr_vec(upstream_servers),
+            upstream_servers,
             blocking_ip,
         })
     }
