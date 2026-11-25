@@ -4,6 +4,7 @@ version = "0.0.10"
 description = "authoritative DNS server with blocklist features"
 readme = "README.md"
 homepage = "https://crates.io/crates/name-sayer"
+repository = "https://github.com/gabrielfalcao/name-sayer"
 license = "MIT OR Apache-2.0"
 edition = "2024"
 autoexamples = false
