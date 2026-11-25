@@ -20,6 +20,9 @@ pub use dispatch::{ArgsDispatcher, ParserDispatcher, SubcommandDispatcher};
 #[doc(inline)] pub use models::{BlockedAddress, validate_blocked_address};
 
 #[doc(hidden)] pub mod upstream;
+use std::sync::LazyLock;
+
+use lazy_mut::LazyMut;
 #[doc(inline)]
 pub use upstream::{
     ALL_UPSTREAM_SERVERS,
@@ -28,3 +31,9 @@ pub use upstream::{
     upstream_servers_to_ipv4_addr_vec,
     upstream_servers_to_struct,
 };
+pub static BLOCKLIST: LazyLock<Vec<String>> = LazyLock::new(|| {
+    include_str!("blocklist.txt")
+        .split("\n")
+        .map(|e| e.trim().to_string())
+        .collect::<Vec<String>>()
+});

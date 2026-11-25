@@ -1,5 +1,4 @@
 use std::{net::Ipv4Addr, ops::Deref};
-
 use async_trait::async_trait;
 use color_eyre::{
     Help,
@@ -15,7 +14,7 @@ use hickory_server::{
     zone_handler::{MessageRequest, MessageResponseBuilder},
 };
 use tokio::net::UdpSocket;
-
+use iocore::Path;
 // use hickory_proto::rr::Name;
 // use hickory_server::authority::MessageResponseBuilder;
 use crate::{ConfigResolver, UPSTREAM_SERVERS};
@@ -23,12 +22,13 @@ use crate::{ConfigResolver, UPSTREAM_SERVERS};
 pub struct DNSServer {
     pub upstream: ConfigResolver,
     pub blocking_ip: Ipv4Addr,
+    pub blocklist_files: Vec<Path>,
 }
 
 pub static DEFAULT_BLOCKING_IP: Ipv4Addr = Ipv4Addr::new(23, 50, 77, 69);
 impl Default for DNSServer {
     fn default() -> DNSServer {
-        DNSServer { upstream: Default::default(), blocking_ip: DEFAULT_BLOCKING_IP }
+        DNSServer { upstream: Default::default(), blocking_ip: DEFAULT_BLOCKING_IP, blocklist_files: Vec::new() }
     }
 }
 
@@ -37,8 +37,12 @@ impl DNSServer {
         upstream: ConfigResolver,
         blocking_ip: Ipv4Addr,
         upstream_servers: Vec<Ipv4Addr>,
+        blocklist_files: Vec<Path>,
     ) -> Result<DNSServer> {
-        Ok(DNSServer { upstream: ConfigResolver::load(blocking_ip, upstream_servers)?, blocking_ip })
+        Ok(DNSServer {
+            upstream: ConfigResolver::load(blocking_ip, upstream_servers)?,
+            blocking_ip, blocklist_files
+        })
     }
     pub async fn start(self, socket: UdpSocket) -> Result<(), Report> {
         let mut server = Server::new(self);

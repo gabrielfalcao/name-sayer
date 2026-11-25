@@ -1,13 +1,23 @@
 #![allow(unused)]
-use pretty_assertions::assert_eq;
 use iocore::Path;
-use name_sayer::{ConfigResolver, DEFAULT_BLOCKING_IP, Error, Result};
+use std::net::Ipv4Addr;
+use name_sayer::{BLOCKLIST, ConfigResolver, DEFAULT_BLOCKING_IP, Error, Result};
+use pretty_assertions::assert_eq;
 const BLOCKED_ADDRESSES: [&'static str; 3] =
     ["hai8g.com", "www.qkinm.top", "www.googleadservices.com"];
 
 #[tokio::test]
 async fn test_block_address() -> Result<()> {
-    let mut resolve = ConfigResolver::load(DEFAULT_BLOCKING_IP)?;
+    let mut resolve = ConfigResolver::load(
+        DEFAULT_BLOCKING_IP,
+        BLOCKLIST
+            .clone()
+            .into_iter()
+            .map(|a| a.parse::<Ipv4Addr>())
+            .filter(|o| o.is_ok())
+            .map(|o| o.unwrap())
+            .collect::<Vec<Ipv4Addr>>(),
+    )?;
     for blocked in BLOCKED_ADDRESSES.iter() {
         resolve.add_blocked_address(blocked)?;
     }

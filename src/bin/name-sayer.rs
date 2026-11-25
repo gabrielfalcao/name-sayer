@@ -10,6 +10,7 @@ use name_sayer::{
     ConfigResolver,
     DNSServer,
     UPSTREAM_SERVERS,
+    BLOCKLIST,
     setup_logger,
     upstream_servers_to_ipv4_addr_vec,
 };
@@ -86,8 +87,8 @@ impl Cli {
 
 #[derive(Debug, Clone)]
 pub struct Application {
-    cli: Cli,
-    server: DNSServer,
+    pub cli: Cli,
+    pub server: DNSServer,
 }
 
 impl Default for Application {
@@ -100,7 +101,7 @@ impl Application {
     pub fn new() -> Result<Application> {
         let cli = Cli::parse();
         let upstream = ConfigResolver::load(cli.block_terminate_ipv4, cli.upstream_servers())?;
-        let server = DNSServer::load(upstream, cli.block_terminate_ipv4, cli.upstream_servers())?;
+        let server = DNSServer::load(upstream, cli.block_terminate_ipv4, cli.upstream_servers(), cli.blocklist_files.clone())?;
         Ok(Application { cli, server })
     }
 
@@ -154,7 +155,8 @@ async fn main() -> std::result::Result<(), Report> {
     app.server.blocking_ip = app.cli.block_terminate_ipv4;
     setup_logger(app.cli.log_level_max)?;
     if app.cli.blocklist_files.is_empty() {
-        log::warn!("no blocklist provided, to block domains make sure to use the -b option");
+        log::warn!("no blocklist provided, to block domains make sure to use the -b option. Using builtin names to mitigate the issue.");
+        app.server.blocklist_files = BLOCKLIST.clone().into_iter().map(|s|Path::from(s)).collect::<Vec<Path>>()
     }
     let mut names = Vec::<String>::new();
 

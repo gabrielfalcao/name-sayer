@@ -77,6 +77,7 @@ hickory-proto = { version = "0.26.3", features = ["access-control", "dnssec-aws-
 hickory-resolver = { version = "0.26.3", features = ["dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "rustls-platform-verifier", "serde", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
 hickory-server = { version = "0.26.3", features = ["blocklist", "dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "resolver", "rustls-platform-verifier", "sqlite", "testing", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
 iocore = "3.2.0"
+lazy_mut = "0.2.1"
 log = "0.4.35"
 owo-colors = { version = "4.4.0", features = ["supports-color", "supports-colors"] }
 pin-project-lite = "0.2.17"
