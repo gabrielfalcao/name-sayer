@@ -164,9 +164,9 @@ impl ConfigResolver {
             requested_names.iter().map(|r| r.to_string()).collect::<Vec<String>>().join(", ");
         log::warn!("request to resolve: {}", requests);
         for requested_name in requested_names.clone() {
-            if let Some(ipv4) = self.mapping.get(&requested_name) {
-                log::warn!("resolving {requested_name} via local mapping: {ipv4}")
-                result.push(ipv4.to_string());
+            if let Some(ipv4) = self.mapping.get(&requested_name.name()?) {
+                log::warn!("resolving {requested_name} via local mapping: {ipv4}");
+               result.push(ipv4.to_string());
                 return Ok(result)
             }
             // let name = Name::from_str(&requested_name)?;

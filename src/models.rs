@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, fmt::Display, str::FromStr, sync::LazyLock};
 
 use fast_glob::glob_match;
-use hickory_proto::rr::domain::Name;
+use hickory_proto::rr::{LowerName, Name};
 use regex::Regex;
 use rune_host_match::HostPattern;
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,11 @@ pub fn validate_blocked_address<T: Display>(address: T) -> Result<String> {
         }
     }
 }
-
+impl Into<LowerName> for BlockedAddress {
+    fn into(self) -> LowerName {
+        LowerName::new(&self.name().unwrap())
+    }
+}
 impl BlockedAddress {
     pub fn new<T: Display>(address: T) -> Result<BlockedAddress> {
         Ok(BlockedAddress(validate_blocked_address(address)?))
