@@ -5,6 +5,12 @@ authoritative DNS server with blocklist features
 
 ![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo.png)
 
+## Installing
+
+```bash
+cargo install name-sayer
+```
+
 ## Usage
 
 ### Running a simple DNS server
