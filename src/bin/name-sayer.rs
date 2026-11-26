@@ -6,11 +6,11 @@ use color_eyre::eyre::{Report, Result};
 use hickory_proto::rr::Name;
 use iocore::{Path, env};
 use name_sayer::{
+    BLOCKLIST,
     BlockedAddress,
     ConfigResolver,
     DNSServer,
     UPSTREAM_SERVERS,
-    BLOCKLIST,
     setup_logger,
     upstream_servers_to_ipv4_addr_vec,
 };
@@ -101,7 +101,13 @@ impl Application {
     pub fn new() -> Result<Application> {
         let cli = Cli::parse();
         let upstream = ConfigResolver::load(cli.block_terminate_ipv4, cli.upstream_servers())?;
-        let server = DNSServer::load(upstream, cli.block_terminate_ipv4, cli.upstream_servers(), cli.blocklist_files.clone())?;
+        let server = DNSServer::load(
+            upstream,
+            cli.block_terminate_ipv4,
+            cli.upstream_servers(),
+            cli.blocklist_files.clone(),
+        )?;
+
         Ok(Application { cli, server })
     }
 
@@ -110,11 +116,10 @@ impl Application {
         let host = self.cli.host;
 
         let addr = format!("{host}:{port}");
-        let pool_blue =  "\x1b[1;38;2;48;225;185m";
+        let pool_blue = "\x1b[1;38;2;48;225;185m";
         if self.cli.dry_run {
             display_banner(format!("dns server would listen on {pool_blue}{addr}"));
         } else {
-
             display_banner(format!("dns server listening on {pool_blue}{addr}"));
 
             let socket = UdpSocket::bind(&addr).await?;
@@ -146,7 +151,6 @@ pub fn display_banner<T: std::fmt::Display>(text: T) {
     let light_blue = "\x1b[1;38;2;143;211;255m";
     let beg = format!("\x1b[2J\x1b[3J\x1b[H{pink}{name} {blue}{sayer}{light_blue}\n");
     let end = format!("\x1b[1;38;2;255;214;53m");
-    eprintln!("{beg}{text}{end}");
 }
 
 #[tokio::main]
@@ -155,8 +159,11 @@ async fn main() -> std::result::Result<(), Report> {
     app.server.blocking_ip = app.cli.block_terminate_ipv4;
     setup_logger(app.cli.log_level_max)?;
     if app.cli.blocklist_files.is_empty() {
-        log::warn!("no blocklist provided, to block domains make sure to use the -b option. Using builtin names to mitigate the issue.");
-        app.server.blocklist_files = BLOCKLIST.clone().into_iter().map(|s|Path::from(s)).collect::<Vec<Path>>()
+        log::warn!(
+            "no blocklist provided, to block domains make sure to use the -b option. Using builtin names to mitigate the issue."
+        );
+        app.server.blocklist_files =
+            BLOCKLIST.clone().into_iter().map(|s| Path::from(s)).collect::<Vec<Path>>()
     }
     let mut names = Vec::<String>::new();
 

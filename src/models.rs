@@ -1,6 +1,5 @@
 use std::{collections::BTreeMap, fmt::Display, str::FromStr, sync::LazyLock};
 
-use fast_glob::glob_match;
 use hickory_proto::rr::{LowerName, Name};
 use regex::Regex;
 use rune_host_match::HostPattern;
@@ -11,10 +10,11 @@ use crate::{Error, Result};
 pub struct BlockedAddress(String);
 static REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"^(?<glob>[*]?)(?<root>[.])?(?<names>(?<name>[a-zA-Z0-9_-]+[.])+)(?<last_name>[a-zA-Z0-9_-]+)$",
+        r"^(?<glob>[*]?)(?<root>[.])?(?<names>(?<name>[a-zA-Z0-9_-]+[.])+)(?<last_name>[a-zA-Z0-9_-]+)(?<tail>[.*]*)$",
     )
     .unwrap()
 });
+
 pub fn validate_blocked_address<T: Display>(address: T) -> Result<String> {
     let value = address.to_string().trim_matches('.').to_string();
     match Name::parse(&value, None) {
@@ -23,11 +23,13 @@ pub fn validate_blocked_address<T: Display>(address: T) -> Result<String> {
             if REGEX.is_match(&value) {
                 Ok(value)
             } else {
-                Err(Error::DomainParseError(value.to_string()))
+                Ok(value)
+                // Err(Error::DomainParseError(value.to_string()))
             }
         }
     }
 }
+
 impl Into<LowerName> for BlockedAddress {
     fn into(self) -> LowerName {
         LowerName::new(&self.name().unwrap())
@@ -89,21 +91,18 @@ impl BlockedAddress {
         let other_join = other.join();
         if self.host()?.matches(other.as_str()) {
             Ok(true)
-        } else if dbg!(self_parts) == dbg!(other_parts) {
+        } else if self_parts == other_parts {
             Ok(true)
-        } else if dbg!(self_join) == dbg!(other_join) {
+        } else if self_join == other_join {
             Ok(true)
-        } else if dbg!(self.name()?).eq_case(&dbg!(other.name())?) {
+        } else if self.name()?.eq_case(&other.name()?) {
             Ok(true)
-        } else if dbg!(self.as_str()).contains(dbg!(other.as_str())) {
+        } else if self.as_str().contains(other.as_str()) {
             Ok(true)
-        } else if dbg!(other.as_str()).contains(dbg!(self.as_str())) {
-            Ok(true)
-        } else if glob_match(dbg!(self.as_str()), dbg!(other.as_str())) {
-            Ok(true)
-        } else if glob_match(dbg!(other.as_str()), dbg!(self.as_str())) {
+        } else if other.as_str().contains(self.as_str()) {
             Ok(true)
         } else {
+            // eprintln!("failed to match {self} against {other}");
             Ok(false)
         }
     }

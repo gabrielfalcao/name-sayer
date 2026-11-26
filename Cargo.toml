@@ -73,6 +73,8 @@ clap = { version = "4.6.8", features = ["cargo", "derive", "env", "string", "uni
 color-eyre = { version = "0.6.5", features = ["issue-url", "url"] }
 fast-glob = "1.1.2"
 fern = { version = "0.7.1", features = ["colored", "date-based", "libc", "meta-logging-in-format", "reopen-03", "reopen-1", "reopen03", "reopen1", "syslog-3", "syslog-4", "syslog-6", "syslog-7", "syslog3", "syslog4", "syslog6", "syslog7"] }
+glob = "0.3.4"
+globset = "0.4.22"
 hickory-net = "0.26.3"
 hickory-proto = { version = "0.26.3", features = ["access-control", "dnssec-aws-lc-rs", "dnssec-ring", "mdns", "no-std-rand", "serde", "testing", "wasm-bindgen"] }
 hickory-resolver = { version = "0.26.3", features = ["dnssec-aws-lc-rs", "dnssec-ring", "h3-aws-lc-rs", "h3-ring", "https-aws-lc-rs", "https-ring", "metrics", "quic-aws-lc-rs", "quic-ring", "recursor", "rustls-platform-verifier", "serde", "tls-aws-lc-rs", "tls-ring", "toml", "webpki-roots"] }
