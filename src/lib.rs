@@ -34,7 +34,7 @@ pub use upstream::{
 pub static BLOCKLIST: LazyLock<Vec<String>> = LazyLock::new(|| {
     let blocklist_files = [
         include_str!("blocklists/blocklist._.txt"),
-        include_str!("blocklists/blocklist.*.txt"),
+        include_str!("blocklists/blocklist.asterisk.txt"),
         include_str!("blocklists/blocklist.#.txt"),
         include_str!("blocklists/blocklist.0.txt"),
         include_str!("blocklists/blocklist.1.txt"),
