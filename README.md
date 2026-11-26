@@ -13,9 +13,7 @@ authoritative DNS server with blocklist features
 ### Running a DNS Server which blocks names
 
 1. Create a text file with one domain or domain pattern per line, say this file is called `blocklist.txt`
-2. ```name-sayer -b blocklist.txt`` this spins up the DNS server which which prevents the DNS resolution to the real server, pointing to a well-klnown DoD ip instead (hack the world!)
-
-![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png)
+2. `name-sayer -b blocklist.txt` this spins up the DNS server which which prevents the DNS resolution to the real server, pointing to a well-klnown DoD ip instead (hack the world!)
 
 
 ## Well-known Upstream nameservers
@@ -88,6 +86,8 @@ These are not used by default but name-sayer can be setup such that those upstre
 │             opendns │ 208.67.222.220 │
 └─────────────────────┴────────────────┘
 ```
+
+![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png)
 
 
 
