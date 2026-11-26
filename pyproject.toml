@@ -1,0 +1,9 @@
+[project]
+name = "split-blocklist"
+version = "0.1.0"
+description = "Takes one blocklist file and split into multiple files grouped alphabetically"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "click>=8.5.1",
+]
