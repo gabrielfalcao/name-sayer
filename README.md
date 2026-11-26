@@ -2,8 +2,9 @@
 
 authoritative DNS server with blocklist features
 
-![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png
-)
+![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png)
+
+![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo.png)
 
 
 
