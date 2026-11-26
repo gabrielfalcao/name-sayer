@@ -24,6 +24,7 @@ authoritative DNS server with blocklist features
 
 `name-sayer` uses the following default upstream servers:
 
+```
 ┌────────────────┬─────────┐
 │           name │ ip      │
 ├────────────────┼─────────┤
@@ -37,11 +38,14 @@ authoritative DNS server with blocklist features
 ├────────────────┼─────────┤
 │         google │ 8.8.8.8 │
 └────────────────┴─────────┘
+```
+
 
 ### All Upstream Servers
 
 These are not used by default but name-sayer can be setup such that those upstream are used
 
+```
 ┌─────────────────────┬────────────────┐
 │                name │ ip             │
 ├─────────────────────┼────────────────┤
@@ -83,7 +87,7 @@ These are not used by default but name-sayer can be setup such that those upstre
 ├─────────────────────┼────────────────┤
 │             opendns │ 208.67.222.220 │
 └─────────────────────┴────────────────┘
-
+```
 
 
 
