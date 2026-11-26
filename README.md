@@ -87,6 +87,8 @@ These are not used by default but name-sayer can be setup such that those upstre
 └─────────────────────┴────────────────┘
 ```
 
+# DEMO
+
 ![https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png](https://raw.githubusercontent.com/gabrielfalcao/name-sayer/refs/heads/main/docs/logo-pixel-art.png)
 
 
