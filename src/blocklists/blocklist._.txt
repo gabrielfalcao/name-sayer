@@ -1,0 +1,5 @@
+_.apps.iocnt.de
+_.tt.omtrdc.net
+_apple-pairable._tcp.local
+_mboxedge26.tt.omtrdc.net
+_tcp.academyofconsciousleadership.net
