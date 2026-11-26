@@ -22,6 +22,12 @@ def throw(*message):
 def split_blocklist_file(filename: Path):
     alphabetic = defaultdict(list)
     lines = [l.strip() for l in filename.open().readlines()]
+    sorted_lines = sorted(lines, key=itemgetter(0))
+
+    for key, group in groupby(sorted_data, key=itemgetter(0)):
+        alphabetic[key].append(group)
+
+    print(alphabetic)
 
 @click.command()
 @click.argument("blocklist_file", required=True, type=Path)
