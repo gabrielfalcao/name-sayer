@@ -9697,7 +9697,7 @@ thoughtprosperous.com
 thoughtsusta.xyz
 thoughttechnology.org
 thoughtultracruel.quest
-thoughtworks*.*
+thoughtworks*
 thoughtworks.com
 thoughtworks.tt.omtrdc.net
 thoughtworksproductionhcqoag0q.analytics.org.coveo.com

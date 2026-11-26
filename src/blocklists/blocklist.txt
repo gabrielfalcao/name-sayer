@@ -244,12 +244,12 @@ uol.com
 *.ymmobi.com
 *.zemanta.com
 *insights*
-*insights*.*
+*insights*
 *intercept*
-*intercept*.*
+*intercept*
 *iterm2*
 *research*
-*research*.*
+*research*
 *think*.com
 *think*.io
 *think*.org
@@ -98577,7 +98577,7 @@ detectmus.com
 detectorlifestyle.com
 detectortormenta.com
 detectorvenomouscutlery.com
-detectportal.*.*
+detectportal.*
 detectportalsecure.xyz
 detectvid.com
 detectys.digital
@@ -341152,7 +341152,7 @@ thoughttechnology.org
 thoughtultracruel.quest
 thoughtworks.com
 thoughtworks.tt.omtrdc.net
-thoughtworks*.*
+thoughtworks*
 thoughtworksproductionhcqoag0q.analytics.org.coveo.com
 thoughtworksproductionhcqoag0q.org.coveo.com
 thoughtxs.in

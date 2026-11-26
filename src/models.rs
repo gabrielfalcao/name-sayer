@@ -1,8 +1,9 @@
 use std::{collections::BTreeMap, fmt::Display, str::FromStr, sync::LazyLock};
 
 use hickory_proto::rr::{LowerName, Name};
+use match_domain::DomainMatchingRule;
 use regex::Regex;
-use rune_host_match::HostPattern;
+// use rune_host_match::HostPattern;
 use serde::{Deserialize, Serialize};
 
 use crate::{Error, Result};
@@ -45,14 +46,30 @@ impl BlockedAddress {
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
-    pub fn host(&self) -> Result<HostPattern> {
-        Ok(HostPattern::parse(self.as_str())?)
+    pub fn to_domain_matching_rules(&self, domain_name: &str) -> Vec<String> {
+        let mut result = Vec::new();
+        let regex = Regex::new(r"[*][.][*]$").unwrap();
+        result.push(regex.replace_all(self.as_str(), ".*").to_string());
+        let regex = Regex::new(r"[*]$").unwrap();
+        result.push(regex.replace_all(self.as_str(), ".*").to_string());
+        let regex = Regex::new(r"[.]$").unwrap();
+        result.push(regex.replace_all(self.as_str(), ".*").to_string());
+        let regex = Regex::new(r"^[*][.][*]").unwrap();
+        result.push(regex.replace_all(self.as_str(), ".*").to_string());
+        let regex = Regex::new(r"^[*]").unwrap();
+        result.push(regex.replace_all(self.as_str(), ".*").to_string());
+        let regex = Regex::new(r"^[.]").unwrap();
+        result.push(regex.replace_all(self.as_str(), ".*").to_string());
+        result
     }
+    // pub fn host(&self) -> Result<HostPattern> {
+    //     Ok(HostPattern::parse(&self.to_domain_matching_rule_string())?)
+    // }
     pub fn parts(&self) -> Result<Vec<(String, String)>> {
+        let mut items = Vec::<(String, String)>::new();
         let caps = REGEX.captures(self.as_str());
         match caps {
             Some(caps) => {
-                let mut items = Vec::<(String, String)>::new();
                 for name in ["glob", "names", "name", "last_name"] {
                     match caps.name(name) {
                         Some(mtch) => {
@@ -65,7 +82,10 @@ impl BlockedAddress {
                 }
                 Ok(items)
             }
-            None => Err(Error::DomainParseError(self.to_string())),
+            None => {
+                items.push(("literal".to_string(), self.to_string()));
+                Ok(items)
+            }
         }
     }
     pub fn split(&self) -> Vec<String> {
@@ -89,12 +109,17 @@ impl BlockedAddress {
         let other_parts = other.parts()?;
         let self_join = self.join();
         let other_join = other.join();
-        if self.host()?.matches(other.as_str()) {
+        let domain_matching_rule =
+            DomainMatchingRule::try_from(self.to_domain_matching_rules(self.as_str()))?;
+
+        if domain_matching_rule.is_matched(other.as_str()) {
             Ok(true)
-        } else if self_parts == other_parts {
-            Ok(true)
-        } else if self_join == other_join {
-            Ok(true)
+        // } else if self.host()?.matches(other.as_str()) {
+        //     Ok(true)
+        // } else if self_parts == other_parts {
+        //     Ok(true)
+        // } else if self_join == other_join {
+            //     Ok(true)
         } else if self.name()?.eq_case(&other.name()?) {
             Ok(true)
         } else if self.as_str().contains(other.as_str()) {
@@ -110,7 +135,7 @@ impl BlockedAddress {
 
 impl Display for BlockedAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.as_str(),)
+        write!(f, "{}", self.as_str())
     }
 }
 

@@ -21,6 +21,8 @@ pub enum Error {
     HostPatternMatchError(#[from] rune_host_match::Error),
     #[error("invalid value for blocked address: {0}")]
     DomainParseError(String),
+    #[error("failed to match domain")]
+    DomainMatchError(#[from]match_domain::Error)
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

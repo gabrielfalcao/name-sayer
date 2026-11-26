@@ -8609,7 +8609,7 @@ detectmus.com
 detectorlifestyle.com
 detectortormenta.com
 detectorvenomouscutlery.com
-detectportal.*.*
+detectportal.*
 detectportalsecure.xyz
 detectvid.com
 detectys.digital

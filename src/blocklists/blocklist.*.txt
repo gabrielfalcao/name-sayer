@@ -210,12 +210,12 @@
 *.ymmobi.com
 *.zemanta.com
 *insights*
-*insights*.*
+*insights*
 *intercept*
-*intercept*.*
+*intercept*
 *iterm2*
 *research*
-*research*.*
+*research*
 *think*.com
 *think*.io
 *think*.org
