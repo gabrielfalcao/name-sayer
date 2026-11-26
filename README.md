@@ -8,7 +8,14 @@ authoritative DNS server with blocklist features
 ## Usage
 
 ### Running a simple DNS server
-```name-sayer`` this spins up the simplest DNS server pointing to the default upstreams mentioned below
+
+this spins up the simplest DNS server pointing to the default
+upstreams mentioned below:
+
+```bash
+name-sayer
+```
+
 
 ### Running a DNS Server which blocks names
 
