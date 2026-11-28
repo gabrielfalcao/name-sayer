@@ -33,3 +33,10 @@ fn test_blocked_address_without_wildcard() -> Result<()> {
     assert_eq!(hotjar.matches_address("hotjar.com")?, true);
     Ok(())
 }
+
+#[test]
+fn test_blocked_address_with_tld() -> Result<()> {
+    let hotjar = BlockedAddress::new(".gov.br")?;
+    assert_eq!(hotjar.matches_address("www.sus.gov.br")?, true);
+    Ok(())
+}
